@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="Posts.Api/Posts.Api.csproj" />
+    <Project Path="src/Posts.Api/Posts.Api.csproj" />
     <Project Path="src/Posts.Application/Posts.Application.csproj" />
     <Project Path="src/Posts.Contract/Posts.Contract.csproj" />
     <Project Path="src/Posts.Domain/Posts.Domain.csproj" />

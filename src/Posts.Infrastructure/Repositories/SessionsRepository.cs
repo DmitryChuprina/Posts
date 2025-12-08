@@ -1,4 +1,5 @@
-﻿using Posts.Application.Core;
+﻿using Dapper;
+using Posts.Application.Core;
 using Posts.Application.Repositories;
 using Posts.Domain.Entities;
 using Posts.Infrastructure.Repositories.Base;
@@ -13,7 +14,7 @@ namespace Posts.Infrastructure.Repositories
         }
 
         protected override ColumnDefinition[] Columns { get; } =
-{
+        {
             new ColumnDefinition { PropertyName = nameof(Session.UserId),         ColumnName = "user_id" },
             new ColumnDefinition { PropertyName = nameof(Session.AccessToken),    ColumnName = "access_token" },
             new ColumnDefinition { PropertyName = nameof(Session.RefreshToken),   ColumnName = "refresh_token" },
@@ -22,5 +23,25 @@ namespace Posts.Infrastructure.Repositories
         };
 
         protected override string TableName { get; } = "sessions";
+
+        public Task<Session?> GetByRefreshToken(string refreshToken)
+        {
+            var query = $@"
+                SELECT {_selectColumnsSql}
+                FROM {TableName}
+                WHERE refresh_token = @RefreshToken
+                LIMIT 1;
+            ";
+            var parameters = new { RefreshToken = refreshToken };
+            return _connectionFactory.Use((conn, cancellation) =>
+                conn.QueryFirstOrDefaultAsync<Session>(
+                    new CommandDefinition(
+                        commandText: query,
+                        parameters,
+                        cancellationToken: cancellation
+                    )
+                )
+            );
+        }
     }
 }

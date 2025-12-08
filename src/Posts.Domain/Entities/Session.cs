@@ -7,7 +7,7 @@ namespace Posts.Domain.Entities
         public Guid UserId { get; set; }
         public required string AccessToken { get; set; }
         public required string RefreshToken { get; set; }
-        public DateTime ExpiresAt { get; set; }
+        public DateTime? ExpiresAt { get; set; }
         public bool IsRevoked { get; set; }
 
         public Guid? CreatedBy { get; set; }

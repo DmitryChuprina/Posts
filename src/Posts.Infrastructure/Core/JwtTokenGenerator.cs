@@ -55,28 +55,15 @@ namespace Posts.Infrastructure.Core
             return Generate(claims);
         }
 
-        public TokenUser ParseUserByToken(string token)
+        public TokenUser ParseUserByClaims(ClaimsPrincipal claims)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var validationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidIssuer = _options.Issuer,
-                ValidateAudience = true,
-                ValidAudience = _options.Audience,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(_keyBytes),
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
-            };
-            var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-            var userIdClaim = principal.FindFirst("uid") ?? principal.FindFirst(JwtRegisteredClaimNames.Sub);
-            var userRoleClaim = principal.FindFirst(ClaimTypes.Role);
+            var userIdClaim = claims.FindFirst("uid") ?? claims.FindFirst(JwtRegisteredClaimNames.Sub);
+            var userRoleClaim = claims.FindFirst(ClaimTypes.Role);
             if (userIdClaim == null)
             {
                 throw new SecurityTokenException("Invalid token: User ID claim not found.");
             }
-            if(userRoleClaim == null)
+            if (userRoleClaim == null)
             {
                 throw new SecurityTokenException("Invalid token: User Role claim not found.");
             }

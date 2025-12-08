@@ -7,6 +7,6 @@ namespace Posts.Application.Core
     {
         public string Generate(List<Claim> claims, int? expiresMinutes);
         public string GenerateByUser(TokenUser user);
-        public TokenUser ParseUserByToken(string token);
+        public TokenUser ParseUserByClaims(ClaimsPrincipal claims);
     }
 }
