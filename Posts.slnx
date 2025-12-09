@@ -1,9 +1,13 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="Posts.Api/Posts.Api.csproj" />
+    <Project Path="src/Posts.Api/Posts.Api.csproj" />
     <Project Path="src/Posts.Application/Posts.Application.csproj" />
     <Project Path="src/Posts.Contract/Posts.Contract.csproj" />
     <Project Path="src/Posts.Domain/Posts.Domain.csproj" />
     <Project Path="src/Posts.Infrastructure/Posts.Infrastructure.csproj" />
+    <Project Path="src/Posts.Migrations/Posts.Migrations.csproj" Id="3e4b512c-36d1-459a-aedd-77395da134d6" />
   </Folder>
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
 </Solution>

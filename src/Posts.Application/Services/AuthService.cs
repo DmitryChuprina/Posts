@@ -2,6 +2,7 @@
 using Posts.Application.Core.Models;
 using Posts.Application.Exceptions;
 using Posts.Application.Repositories;
+using Posts.Application.Rules;
 using Posts.Contract.Models.Auth;
 using Posts.Domain.Entities;
 using Posts.Domain.Shared.Enums;
@@ -11,12 +12,13 @@ namespace Posts.Application.Services
 {
     public class AuthService
     {
-        private readonly UsersService _usersService;
+        private readonly UsersDomainService _usersDomainService;
 
         private readonly IPasswordHasher _passwordHasher;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
         private readonly IEncryption _encryption;
+        private readonly ICurrentUser _currentUser;
 
         private readonly IUsersRepository _usersRepository;
         private readonly ISessionsRepository _sessionsRepository;
@@ -24,13 +26,14 @@ namespace Posts.Application.Services
         public AuthService(
             IUsersRepository usersRepository,
             ISessionsRepository sessionsRepository,
-            UsersService usersService,
+            UsersDomainService usersDomainService,
+            ICurrentUser currentUser,
             IJwtTokenGenerator jwtTokenGenerator,
             IRefreshTokenGenerator refreshTokenGenerator,
             IEncryption encryption,
             IPasswordHasher passwordHasher)
         {
-            _usersService = usersService;
+            _usersDomainService = usersDomainService;
 
             _usersRepository = usersRepository;
             _sessionsRepository = sessionsRepository;
@@ -39,13 +42,14 @@ namespace Posts.Application.Services
             _jwtTokenGenerator = jwtTokenGenerator;
             _refreshTokenGenerator = refreshTokenGenerator;
             _encryption = encryption;
+            _currentUser = currentUser;
         }
 
-        public async Task<AuthUserDto> SignUp(SignUpRequestDto dto)
+        public async Task<SignUpResponseDto> SignUp(SignUpRequestDto dto)
         {
             await Task.WhenAll(
-                _usersService.ValidateUsernameIsTaken(dto.Username),
-                _usersService.ValidateEmailIsTaken(dto.Email)
+                _usersDomainService.ValidateUsernameIsTaken(dto.Username),
+                _usersDomainService.ValidateEmailIsTaken(dto.Email)
             );
 
             var user = new User
@@ -58,7 +62,10 @@ namespace Posts.Application.Services
 
             await _usersRepository.Add(user);
 
-            return toDto(user);
+            return new SignUpResponseDto
+            {
+                User = toDto(user)
+            };
         }
 
         public async Task<SignInResponseDto> SignIn(SignInRequestDto dto)
@@ -79,7 +86,8 @@ namespace Posts.Application.Services
                 UserId = user.Id,
                 AccessToken = _encryption.Encrypt(accessToken),
                 RefreshToken = _encryption.Encrypt(refreshToken),
-                IsRevoked = false
+                IsRevoked = false,
+                ExpiresAt = dto.RememberMe ? null : DateTime.Now.AddDays(1)
             };
 
             await _sessionsRepository.Add(session);
@@ -95,9 +103,57 @@ namespace Posts.Application.Services
             };
         }
 
-        public async Task<AuthTokensDto> RefreshToken(AuthTokensDto tokens)
+        public async Task<AuthTokensDto> RefreshToken(AuthTokensDto dto)
         {
-            var session = 
+            var session = await _sessionsRepository
+                .GetByRefreshToken(_encryption.Encrypt(dto.RefreshToken));
+
+            if (session is null)
+            {
+                throw new InvalidRefreshTokenException("Session not found.");
+            }
+            if (session.IsRevoked)
+            {
+                throw new InvalidRefreshTokenException("Session has been revoked.");
+            }
+            if (session.ExpiresAt is not null && session.ExpiresAt < DateTime.Now)
+            {
+                throw new InvalidRefreshTokenException("Session is expired.");
+            }
+            if(_encryption.Encrypt(dto.AccessToken) != session.AccessToken)
+            {
+                throw new InvalidRefreshTokenException("Invalid session data");
+            }
+
+            var user = await _usersRepository.GetById(session.UserId);
+            if (user is null) { 
+                throw new EntityNotFoundException(typeof(User), session.UserId);
+            }
+
+            var (accessToken, refreshToken) = GenerateTokens(user);
+
+            session.AccessToken = _encryption.Encrypt(accessToken);
+            session.RefreshToken = _encryption.Encrypt(refreshToken);
+
+            await _sessionsRepository.Update(session);
+
+            return new AuthTokensDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            };
+        }
+
+        public async Task<AuthUserDto> Me()
+        {
+            var userId = _currentUser.UserId;
+            var user = userId is not null ? 
+                await _usersRepository.GetById(userId.Value) : 
+                null;
+            if (user is null) { 
+                throw new EntityNotFoundException(typeof(User), userId);
+            }
+            return toDto(user);
         }
 
         private (string, string) GenerateTokens(User user)

@@ -2,7 +2,7 @@
 {
     public class SignInResponseDto
     {
-        public AuthUserDto User { get; set; } = new AuthUserDto();
-        public AuthTokensDto Tokens { get; set; } = new AuthTokensDto();
+        public required AuthUserDto User { get; set; }
+        public required AuthTokensDto Tokens { get; set; }
     }
 }

@@ -1,38 +1,59 @@
-﻿using Posts.Application.Exceptions;
+﻿
+using Posts.Application.Core;
 using Posts.Application.Repositories;
-using Posts.Domain.Entities;
+using Posts.Application.Rules;
+using Posts.Contract.Models;
+using Posts.Contract.Models.Users;
+using Posts.Domain.Shared.Enums;
 
 namespace Posts.Application.Services
 {
     public class UsersService
     {
+        private readonly UsersDomainService _userHelper;
+
         private readonly IUsersRepository _usersRepository;
-        public UsersService(IUsersRepository usersRepository) { 
+
+        private readonly ICurrentUser _currentUser;
+        public UsersService(
+            IUsersRepository usersRepository,
+            UsersDomainService usersHelper,
+            ICurrentUser currentUser
+        ){
             _usersRepository = usersRepository;
+            _userHelper = usersHelper;
+            _currentUser = currentUser;
         }
 
-        public Task ValidateEmailIsTaken(string email, Guid? forUserId = null) =>
-                ValidateIsTaken(() => _usersRepository.GetByEmail(email), "Email", forUserId);
-        public Task ValidateUsernameIsTaken(string username, Guid? forUserId = null) =>
-               ValidateIsTaken(() => _usersRepository.GetByUsername(username), "Username", forUserId);
-
-        private async Task<bool> IsTaken(Func<Task<User?>> userDelegate, Guid? forUserId = null)
+        public async Task<IsTakenDto> EmailIsTaken(EmailIsTakenDto dto)
         {
-            var user = await userDelegate();
-            if (user is not null && user.Id != forUserId)
+            var forUserId = GetForUserId(dto);
+            return new IsTakenDto
             {
-                return true;
-            }
-            return false;
+                IsTaken = await _userHelper.EmailIsTaken(dto.Email, forUserId)
+            };
         }
 
-        private async Task ValidateIsTaken(Func<Task<User?>> userDelegate, string valueName, Guid? forUserId = null)
+        public async Task<IsTakenDto> UsernameIsTaken(UsernameIsTakenDto dto)
         {
-            var isTaken = await IsTaken(userDelegate, forUserId);
-            if (isTaken)
+            var forUserId = GetForUserId(dto);
+            return new IsTakenDto
             {
-                throw new ValueIsTakenException(typeof(User), valueName, forUserId);
+                IsTaken = await _userHelper.UsernameIsTaken(dto.Username, forUserId)
+            };
+        }
+
+        private Guid? GetForUserId(UserIsTakenRequestDto dto)
+        {
+            UserRole[] allowPassUserIdRoles = [UserRole.Admin, UserRole.Moderator];
+            bool isAllowPassUserId = 
+                _currentUser.UserRole is not null && 
+                allowPassUserIdRoles.Contains(_currentUser.UserRole.Value);
+            if (dto.ForUserId is not  null && !isAllowPassUserId)
+            {
+                throw new Exception();
             }
+            return dto.ForUserId ?? _currentUser.UserId;
         }
     }
 }
