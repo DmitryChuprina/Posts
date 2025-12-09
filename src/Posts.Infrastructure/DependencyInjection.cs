@@ -1,38 +1,36 @@
-﻿using Dapper;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Posts.Application.Core;
 using Posts.Application.Repositories;
 using Posts.Infrastructure.Core;
 using Posts.Infrastructure.Core.Models;
 using Posts.Infrastructure.Repositories;
-using Posts.Infrastructure.Utils;
-using System.Reflection;
 
 namespace Posts.Infrastructure
 {
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(
-            this IServiceCollection services, 
+            this IServiceCollection services,
             string connectionString,
+            string encryptionKey,
             JwtOptions jwtOptions)
         {
-            AddCore(services, jwtOptions);
+            AddCore(services, jwtOptions, encryptionKey);
             AddConnectionFactory(services, connectionString);
             ApplyRepositories(services);
-            RegisterEnumHandlers();
             return services;
         }
 
-        private static void AddCore(IServiceCollection services, JwtOptions jwtOptions)
+        private static void AddCore(IServiceCollection services, JwtOptions jwtOptions, string encryptionKey)
         {
             services.TryAddScoped<ICancellation, DefaultCancellation>();
 
-            services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
             services.AddSingleton<IJwtTokenGenerator>((sp) => new JwtTokenGenerator(jwtOptions));
+            services.AddSingleton<IEncryption>((sp) => new Encryption(encryptionKey));
+
+            services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
             services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
-            services.AddSingleton<IEncryption, Encryption>();
         }
 
         private static void AddConnectionFactory(IServiceCollection services, string connectionString)
@@ -48,21 +46,6 @@ namespace Posts.Infrastructure
         {
             services.AddScoped<IUsersRepository, UsersRepository>();
             services.AddScoped<ISessionsRepository, SessionsRepository>();
-        }
-
-        private static void RegisterEnumHandlers()
-        {
-            var enums = Assembly.GetExecutingAssembly()
-                .GetTypes()
-                .Where(t => t.IsEnum);
-
-            foreach (var enumType in enums)
-            {
-                var handlerType = typeof(EnumTypeHandler<>).MakeGenericType(enumType);
-                var handler = (SqlMapper.ITypeHandler)Activator.CreateInstance(handlerType)!;
-
-                SqlMapper.AddTypeHandler(enumType, handler);
-            }
         }
     }
 }

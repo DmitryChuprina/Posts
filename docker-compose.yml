@@ -1,0 +1,34 @@
+volumes:
+  posts-data:
+
+services:
+  posts.api:
+    image: ${DOCKER_REGISTRY-}postsapi
+    build:
+      context: .
+      dockerfile: src/Posts.Api/Dockerfile
+    ports:
+      - "5100:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://0.0.0.0:8080"
+      JwtOptions__Issuer: "PostsApi"
+      JwtOptions__Audience: "PostsFrontend"
+      JwtOptions__Key: "PUT_32+_SYMBOLS_RANDOM_KEY_HERE"
+      JwtOptions__ExpiresMinutes: 20
+      ConnectionStrings__PostsDatabase: "Host=posts.db;Port=5432;Database=posts;Username=postgres;Password=postgres"
+      EncryptionKey: "PUT_32+_SYMBOLS_RANDOM_KEY_HERE________________"
+      RunMigrations: true
+
+  posts.db:
+    image: pgvector/pgvector:pg17-trixie
+    container_name: posts-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: posts
+    ports:
+      - "6432:5432"
+    volumes:
+      - posts-data:/var/lib/postgresql/data

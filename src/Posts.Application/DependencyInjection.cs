@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Posts.Application.Rules;
 using Posts.Application.Services;
 
 namespace Posts.Application
@@ -7,6 +8,8 @@ namespace Posts.Application
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
+            services.AddScoped<UsersDomainService>();
+
             services.AddScoped<AuthService>();
             services.AddScoped<UsersService>();
 

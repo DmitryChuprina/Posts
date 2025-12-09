@@ -39,8 +39,12 @@ namespace Posts.Api.Core
 
         private TokenUser? ParseUser()
         {
-            var identityUser = _accesor.HttpContext?.User;
-            if (identityUser == null) {
+            var identityUser = _accesor?.HttpContext?.User;
+            if (
+                identityUser == null ||
+                identityUser.Identity is null ||
+                !identityUser.Identity.IsAuthenticated
+            ) {
                 return null;
             }
             return _jwtTokenGenerator.ParseUserByClaims(identityUser);

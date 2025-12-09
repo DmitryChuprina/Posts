@@ -7,6 +7,7 @@ namespace Posts.Api.Extensions
     {
         public static IServiceCollection AddCore(this IServiceCollection services)
         {
+            services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUser, CurrentUser>();
             services.AddScoped<ICancellation, Cancellation>();
 

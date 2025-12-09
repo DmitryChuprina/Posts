@@ -2,8 +2,8 @@
 {
     public class SignInRequestDto
     {
-        public string EmailOrUsername { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        public required string EmailOrUsername { get; set; }
+        public required string Password { get; set; }
         public bool RememberMe { get; set; }
     }
 }

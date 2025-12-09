@@ -155,3 +155,4 @@ namespace Posts.Infrastructure.Repositories.Base
             );
         }
     }
+}
