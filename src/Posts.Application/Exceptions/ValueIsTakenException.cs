@@ -4,20 +4,20 @@
     {
         public Type EntityType { get; }
         public object? EntityKey { get; }
-        public string ValueName { get; set; }
+        public string PropertyName { get; }
 
-        public ValueIsTakenException(Type entityType, string valueName, object? entityKey = null)
-            : base(CreateMessage(entityType, valueName, entityKey))
+        public ValueIsTakenException(Type entityType, string propertyName, object? entityKey = null)
+            : base(CreateMessage(entityType, propertyName, entityKey))
         {
             EntityType = entityType;
             EntityKey = entityKey;
-            ValueName = valueName;
+            PropertyName = propertyName;
         }
 
-        private static string CreateMessage(Type type, string valueName, object? key)
+        private static string CreateMessage(Type type, string propertyName, object? key)
         {
             var name = type.Name;
-            return $"{valueName} is already taken by another {name}.";
+            return $"{propertyName} is already taken by another {name}.";
         }
     }
 }

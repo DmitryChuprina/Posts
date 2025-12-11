@@ -1,0 +1,41 @@
+:root {
+  /* BRAND COLORS */
+  --primary: #1A1A1A;
+  --primary-hover: #141414;
+  --primary-pressed: #0F0F0F;
+
+  --accent: #3B82F6;
+  --accent-hover: #2563EB;
+  --accent-pressed: #1D4ED8;
+
+  --danger: #FF5555;
+  --danger-hover: #E64C4C;
+  --danger-pressed: #CC4444;
+
+  --success: #40D89A;
+  --success-hover: #36C589;
+  --success-pressed: #2EAC78;
+
+  /* SYSTEM / NEUTRALS */
+  --bg: #F8F9FC;
+  --surface: #FFFFFF;
+  --text: #0E0E12BF;
+  --text-muted: #6D7381;
+
+  /* GLOBAL SHAPES & TRANSITIONS */
+  --radius: 10px;
+  --transition-fast: 120ms;
+  --transition-medium: 200ms;
+  --transition-slow: 300ms;
+
+  /* TYPOGRAPHY */
+  --font-family: var(--font-geist-sans);
+}
+
+/* DARK THEME */
+[data-theme="dark"] {
+  --bg: #0F1117;
+  --surface: #1A1C23;
+  --text: #FAFAFC;
+  --text-muted: #9BA1B4;
+}

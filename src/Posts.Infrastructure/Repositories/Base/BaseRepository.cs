@@ -61,16 +61,16 @@ namespace Posts.Infrastructure.Repositories.Base
             return result.ToArray();
         }
 
-        private static string BuildSelectColumnsOnce(ColumnDefinition[] cols)
+        private string BuildSelectColumnsOnce(ColumnDefinition[] cols)
+            => string.Join(", ", cols.Select(c => $"\"{TableName}\".\"{c.ColumnName}\" as \"{c.PropertyName}\""));
+
+        private string BuildInsertColumnsOnce(ColumnDefinition[] cols)
             => string.Join(", ", cols.Select(c => $"\"{c.ColumnName}\""));
 
-        private static string BuildInsertColumnsOnce(ColumnDefinition[] cols)
-            => string.Join(", ", cols.Select(c => $"\"{c.ColumnName}\""));
-
-        private static string BuildInsertParamsOnce(ColumnDefinition[] cols)
+        private string BuildInsertParamsOnce(ColumnDefinition[] cols)
             => string.Join(", ", cols.Select(c => "@" + c.PropertyName));
 
-        private static string BuildUpdateAssignmentsOnce(ColumnDefinition[] cols)
+        private string BuildUpdateAssignmentsOnce(ColumnDefinition[] cols)
             => string.Join(", ",
                 cols.Where(c => c.ColumnName != "id")
                     .Select(c => $"\"{c.ColumnName}\" = @{c.PropertyName}")

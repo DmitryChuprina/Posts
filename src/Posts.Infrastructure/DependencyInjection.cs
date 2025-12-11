@@ -30,6 +30,7 @@ namespace Posts.Infrastructure
             services.AddSingleton<IEncryption>((sp) => new Encryption(encryptionKey));
 
             services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+            services.AddSingleton<ITokenHasher, TokenHasher>();
             services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
         }
 

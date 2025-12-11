@@ -1,0 +1,21 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- background circle -->
+  <circle cx="64" cy="64" r="56" fill="#5E61FF"/>
+
+  <!-- refined reversed P bubble -->
+  <path
+    d="
+      M64 38
+      C47 38 36 47 36 62
+      C36 77 47 86 64 86
+      C72 86 78 83 83 78
+      L83 96
+      C83 99 85 101 88 100
+      C91 99 94 97 98 94
+      C100 92 101 90 101 87
+      L101 62
+      C101 47 88 38 64 38
+      Z"
+    fill="white"
+  />
+</svg>

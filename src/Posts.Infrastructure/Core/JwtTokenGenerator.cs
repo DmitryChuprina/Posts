@@ -16,6 +16,11 @@ namespace Posts.Infrastructure.Core
 
         public JwtTokenGenerator(JwtOptions options)
         {
+            if (options.Key.Length < 32)
+            {
+                throw new ArgumentException("Jwt key should be 32 chars (256-bit)");
+            }
+
             _options = options;
             _keyBytes = Encoding.UTF8.GetBytes(_options.Key);
         }

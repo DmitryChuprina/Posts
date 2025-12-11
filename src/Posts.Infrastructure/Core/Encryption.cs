@@ -12,7 +12,9 @@ namespace Posts.Infrastructure.Core
         public Encryption(string key)
         {
             if (key.Length < 32)
+            {
                 throw new ArgumentException("Encryption key should be 32 chars (256-bit)");
+            }
 
             _key = Encoding.UTF8.GetBytes(key.Substring(0, 32));
         }

@@ -15,9 +15,9 @@ namespace Posts.Application.Services
         private readonly UsersDomainService _usersDomainService;
 
         private readonly IPasswordHasher _passwordHasher;
+        private readonly ITokenHasher _tokenHasher;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
-        private readonly IEncryption _encryption;
         private readonly ICurrentUser _currentUser;
 
         private readonly IUsersRepository _usersRepository;
@@ -30,7 +30,7 @@ namespace Posts.Application.Services
             ICurrentUser currentUser,
             IJwtTokenGenerator jwtTokenGenerator,
             IRefreshTokenGenerator refreshTokenGenerator,
-            IEncryption encryption,
+            ITokenHasher tokenHasher,
             IPasswordHasher passwordHasher)
         {
             _usersDomainService = usersDomainService;
@@ -39,9 +39,9 @@ namespace Posts.Application.Services
             _sessionsRepository = sessionsRepository;
 
             _passwordHasher = passwordHasher;
+            _tokenHasher = tokenHasher;
             _jwtTokenGenerator = jwtTokenGenerator;
             _refreshTokenGenerator = refreshTokenGenerator;
-            _encryption = encryption;
             _currentUser = currentUser;
         }
 
@@ -84,8 +84,8 @@ namespace Posts.Application.Services
 
             Session session = new Session {
                 UserId = user.Id,
-                AccessToken = _encryption.Encrypt(accessToken),
-                RefreshToken = _encryption.Encrypt(refreshToken),
+                AccessToken = _tokenHasher.Hash(accessToken),
+                RefreshToken = _tokenHasher.Hash(refreshToken),
                 IsRevoked = false,
                 ExpiresAt = dto.RememberMe ? null : DateTime.Now.AddDays(1)
             };
@@ -106,7 +106,7 @@ namespace Posts.Application.Services
         public async Task<AuthTokensDto> RefreshToken(AuthTokensDto dto)
         {
             var session = await _sessionsRepository
-                .GetByRefreshToken(_encryption.Encrypt(dto.RefreshToken));
+                .GetByRefreshToken(_tokenHasher.Hash(dto.RefreshToken));
 
             if (session is null)
             {
@@ -120,7 +120,7 @@ namespace Posts.Application.Services
             {
                 throw new InvalidRefreshTokenException("Session is expired.");
             }
-            if(_encryption.Encrypt(dto.AccessToken) != session.AccessToken)
+            if(_tokenHasher.Hash(dto.AccessToken) != session.AccessToken)
             {
                 throw new InvalidRefreshTokenException("Invalid session data");
             }
@@ -132,8 +132,8 @@ namespace Posts.Application.Services
 
             var (accessToken, refreshToken) = GenerateTokens(user);
 
-            session.AccessToken = _encryption.Encrypt(accessToken);
-            session.RefreshToken = _encryption.Encrypt(refreshToken);
+            session.AccessToken = _tokenHasher.Hash(accessToken);
+            session.RefreshToken = _tokenHasher.Hash(refreshToken);
 
             await _sessionsRepository.Update(session);
 

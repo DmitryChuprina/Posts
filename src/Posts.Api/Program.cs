@@ -1,6 +1,7 @@
 using Posts.Api.Extensions;
-using Posts.Infrastructure;
+using Posts.Api.Middlewares;
 using Posts.Application;
+using Posts.Infrastructure;
 using Posts.Infrastructure.Core.Models;
 using Posts.Migrations;
 
@@ -27,6 +28,20 @@ builder.Services
     .AddInfrastructure(connectionString, encryptionKey, jwtOptions)
     .AddApplication();
 
+builder.Services.AddTransient<ExceptionMiddleware>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -38,6 +53,9 @@ if (runMigrations)
 {
     await Migrations.RunAsync(connectionString);
 }
+
+app.UseCors("AllowFrontend");
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
