@@ -13,6 +13,7 @@ export interface AuthTokensDto {
 export interface SignInRequestDto {
   emailOrUsername: string;
   password: string;
+  rememberMe: boolean;
 }
 
 export interface SignInResponseDto{

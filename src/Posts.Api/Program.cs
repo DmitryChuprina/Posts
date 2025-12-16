@@ -1,4 +1,7 @@
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Posts.Api.Extensions;
+using Posts.Api.Filters;
 using Posts.Api.Middlewares;
 using Posts.Application;
 using Posts.Infrastructure;
@@ -7,7 +10,10 @@ using Posts.Migrations;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(opts =>
+{
+    opts.Filters.Add<ValidationFilter>();
+});
 
 builder.Services.AddOpenApi();
 
@@ -28,6 +34,7 @@ builder.Services
     .AddInfrastructure(connectionString, encryptionKey, jwtOptions)
     .AddApplication();
 
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddTransient<ExceptionMiddleware>();
 
 builder.Services.AddCors(options =>
@@ -40,6 +47,11 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowCredentials();
     });
+});
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
 });
 
 var app = builder.Build();

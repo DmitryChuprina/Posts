@@ -1,9 +1,6 @@
-﻿using Posts.Application.Exceptions;
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
+﻿using Posts.Api.Extensions;
+using Posts.Application.Exceptions;
 using System.Net;
-using System.Text.Json;
 
 namespace Posts.Api.Middlewares
 {
@@ -30,49 +27,56 @@ namespace Posts.Api.Middlewares
 
         private Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
-
-            _logger.LogError(ex, "Unhandled exception. TraceId: {TraceId}", traceId);
-
             var status = ex switch
             {
                 UnauthorizedAccessException => HttpStatusCode.Unauthorized,
-                ArgumentException => HttpStatusCode.BadRequest,
                 ValidationException => HttpStatusCode.BadRequest,
                 InvalidCredentialsException => HttpStatusCode.BadRequest,
                 InvalidRefreshTokenException => HttpStatusCode.BadRequest,
                 ValueIsTakenException => HttpStatusCode.BadRequest,
                 EntityNotFoundException => HttpStatusCode.NotFound,
+                ForbiddenException => HttpStatusCode.Forbidden,
                 _ => HttpStatusCode.InternalServerError
             };
+
+            var isInternal = status == HttpStatusCode.InternalServerError;
+            var message = isInternal ? "Internal server error." : ex.Message;
+            var type = isInternal ? "InternalServerError" : ex.GetType().Name;
+
+            Log(ex, context, status, type);
+
+            if (context.Response.HasStarted)
+            {
+                _logger.LogWarning("Response already started, cannot write error. TraceId: {TraceId}", context.GenTraceId());
+                throw ex;
+            }
 
             object? details = ex switch
             {
                 EntityNotFoundException nf => new { Entity = nf.EntityType.Name, nf.Key },
                 ValueIsTakenException tk => new { Entity = tk.EntityType.Name, tk.EntityKey, tk.PropertyName },
+                ValidationException v => v.Errors,
                 _ => null
             };
 
-            var isInternal = status == HttpStatusCode.InternalServerError;
-            var response = new
+            return context.WriteError(status, message, type, details);
+        }
+
+        private void Log(
+            Exception ex, 
+            HttpContext context, 
+            HttpStatusCode status,
+            string type
+        )
+        {
+            var traceId = context.GenTraceId();
+
+            if (status == HttpStatusCode.InternalServerError)
             {
-                Status = (int)status,
-                Message = isInternal ? "Internal server error." : ex.Message,
-                TraceId = traceId,
-                Details = details,
-                Type = isInternal ? "InternalServerError" : ex.GetType().Name
-            };
-
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = response.Status;
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            };
-            var json = JsonSerializer.Serialize(response, options);
-
-            return context.Response.WriteAsync(json);
+                _logger.LogError(ex, "Unhandled exception. TraceId: {TraceId}", traceId);
+                return;
+            }
+            _logger.LogWarning(ex, "Handled exception {ExceptionType}. TraceId: {TraceId}", type, traceId);
         }
     }
 }

@@ -70,7 +70,7 @@ namespace Posts.Application.Services
 
         public async Task<SignInResponseDto> SignIn(SignInRequestDto dto)
         {
-            var isEmail = Validators.IsEmail(dto.EmailOrUsername);
+            var isEmail = Validation.IsEmail(dto.EmailOrUsername);
 
             var user = isEmail ? await _usersRepository.GetByEmail(dto.EmailOrUsername) 
                                : await _usersRepository.GetByUsername(dto.EmailOrUsername);
@@ -87,7 +87,7 @@ namespace Posts.Application.Services
                 AccessToken = _tokenHasher.Hash(accessToken),
                 RefreshToken = _tokenHasher.Hash(refreshToken),
                 IsRevoked = false,
-                ExpiresAt = dto.RememberMe ? null : DateTime.Now.AddDays(1)
+                ExpiresAt = dto.RememberMe ? null : DateTime.UtcNow.AddDays(1)
             };
 
             await _sessionsRepository.Add(session);
@@ -116,7 +116,7 @@ namespace Posts.Application.Services
             {
                 throw new InvalidRefreshTokenException("Session has been revoked.");
             }
-            if (session.ExpiresAt is not null && session.ExpiresAt < DateTime.Now)
+            if (session.ExpiresAt is not null && session.ExpiresAt < DateTime.UtcNow)
             {
                 throw new InvalidRefreshTokenException("Session is expired.");
             }

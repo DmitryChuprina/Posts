@@ -11,12 +11,14 @@ namespace Posts.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UsersService _usersService;
+        private readonly ICurrentUser _currentUser;
 
         public UsersController(
             UsersService usersService,
             ICurrentUser currentUser
         ) { 
             _usersService = usersService;
+            _currentUser = currentUser;
         }
 
         [HttpGet("is-taken/email")]
@@ -30,6 +32,5 @@ namespace Posts.Api.Controllers
         {
             return _usersService.UsernameIsTaken(dto);
         }
-
     }
 }

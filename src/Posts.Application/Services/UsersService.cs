@@ -1,10 +1,12 @@
 ﻿
 using Posts.Application.Core;
+using Posts.Application.Exceptions;
 using Posts.Application.Repositories;
 using Posts.Application.Rules;
 using Posts.Contract.Models;
 using Posts.Contract.Models.Users;
 using Posts.Domain.Shared.Enums;
+using System.Linq;
 
 namespace Posts.Application.Services
 {
@@ -49,9 +51,13 @@ namespace Posts.Application.Services
             bool isAllowPassUserId = 
                 _currentUser.UserRole is not null && 
                 allowPassUserIdRoles.Contains(_currentUser.UserRole.Value);
-            if (dto.ForUserId is not  null && !isAllowPassUserId)
+            if (dto.ForUserId is not null && !isAllowPassUserId)
             {
-                throw new Exception();
+                throw new ForbiddenException(
+                    "Using forUserId allowed only for " + 
+                    string.Join(',', allowPassUserIdRoles.Select(c => c.ToString())) +
+                    " roles"
+                );
             }
             return dto.ForUserId ?? _currentUser.UserId;
         }

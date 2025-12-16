@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { sessionService } from "./shared/entities/service";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,8 +22,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await sessionService.init();
-
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body

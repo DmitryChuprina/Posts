@@ -12,8 +12,8 @@ namespace Posts.Api.Controllers
         private readonly AuthService _authService;
 
         public AuthController(
-            AuthService authService)
-        {
+            AuthService authService
+        ) {
             _authService = authService;
         }
 

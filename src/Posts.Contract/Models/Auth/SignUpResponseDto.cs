@@ -2,6 +2,6 @@
 {
     public class SignUpResponseDto
     {
-        public required AuthUserDto User { get; set; }
+        public AuthUserDto User { get; set; } = new AuthUserDto();
     }
 }

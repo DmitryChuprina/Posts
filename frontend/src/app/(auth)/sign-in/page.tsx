@@ -3,28 +3,23 @@
 import { AuthInput } from "@/components/auth/forms/AuthInput";
 import { AuthCheckbox } from "@/components/auth/forms/AuthCheckbox";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation"
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { AuthApi } from "@/shared/api/auth";
-import { ApiError } from "next/dist/server/api-utils";
 import Link from "next/link";
+import { signInAction } from "@/lib/actions/auth";
+import { AuthApiErrorAlert } from "@/components/auth/forms/AuthApiErrorAlert";
+import { emailOrUsernameSchema } from "@/lib/schemas";
 
 export const signInSchema = z.object({
-    emailOrUsername: z
-        .string()
-        .min(3, 'Enter at least 3 characters'),
-    password: z
-        .string()
-        .min(6, 'Password must be at least 6 characters'),
+    emailOrUsername: emailOrUsernameSchema,
+    password: z.string(),
     rememberMe: z.boolean(),
 });
 
 type SignInForm = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
-    const router = useRouter();
     const form = useForm<SignInForm>({
         resolver: zodResolver(signInSchema),
         mode: "all"
@@ -36,21 +31,14 @@ export default function SignInPage() {
 
     const disableSubmit = loading || !isValid;
 
-    const submit = (data: SignInForm) => {
-        AuthApi.signIn(data)
-            .then(async (res) => {
-                return res;
-            })
-            .then((res) => {
-                router.push("/");
-            })
-            .catch((error: ApiError) => {
-                setApiError(error.message);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    };
+    const submit = async (data: SignInForm) => {
+        setLoading(true);
+        const res = await signInAction(data)
+        if (res.error) {
+            setApiError(res.error);
+        }
+        setLoading(false);
+    }
 
     return (
         <FormProvider {...form}>
@@ -78,13 +66,14 @@ export default function SignInPage() {
                         <Link className="text-muted text-caption ms-auto" href="/">Forgot password?</Link>
                     </div>
                 </fieldset>
+                <AuthApiErrorAlert message={apiError} setMessage={setApiError} form={form} className="mb-2"></AuthApiErrorAlert>
                 <div className="flex flex-col gap-2">
                     <button className="btn btn-primary" type="submit" disabled={disableSubmit}>
                         {loading ? "Loading..." : "Sign in"}
                     </button>
                     <p className="text-text text-caption text-center">
                         Don&apos;t have an account?&nbsp;
-                        <Link className="underline underline-offset-2" href="/">Register</Link>
+                        <Link className="underline underline-offset-2" href="/sign-up">Register</Link>
                     </p>
                     <Link className="text-muted text-caption text-center" href="/">Back to home</Link>
                 </div>
