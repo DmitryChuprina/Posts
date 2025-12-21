@@ -25,7 +25,8 @@ namespace Posts.Infrastructure.Repositories
             new ColumnDefinition { PropertyName = nameof(User.LastName),         ColumnName = "last_name" },
 
             new ColumnDefinition { PropertyName = nameof(User.Description),      ColumnName = "description" },
-            new ColumnDefinition { PropertyName = nameof(User.ProfileImageUrl),  ColumnName = "profile_image_url" },
+            new ColumnDefinition { PropertyName = nameof(User.ProfileImageKey),  ColumnName = "profile_image_key" },
+            new ColumnDefinition { PropertyName = nameof(User.ProfileBannerKey),  ColumnName = "profile_banner_key" },
 
             new ColumnDefinition { PropertyName = nameof(User.BlockedAt),      ColumnName = "blocked_at" },
             new ColumnDefinition { PropertyName = nameof(User.BlockReason),  ColumnName = "block_reason" },

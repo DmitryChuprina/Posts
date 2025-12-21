@@ -12,9 +12,14 @@ type ServicesResult<T extends ApiServiceConstructor[]> = { [K in keyof T]: T[K] 
 
 const getGlobalLock = cache((): IRequestLock => ({ promise: null }));
 
-export const getSession = cache(async () => {
+export const getStorage = cache(async () => {
     const cookieStore = await cookies();
     const storage = new ServerCookieStorage(cookieStore);
+    return storage;
+});
+
+export const getSession = cache(async () => {
+    const storage = await getStorage();
     const session = new SessionStore(storage);
     return session;
 })

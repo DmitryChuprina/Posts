@@ -1,5 +1,5 @@
 import { BaseApiService } from "./core/base-api-service";
-import { AuthUserDto, SignInRequestDto, SignInResponseDto, SignUpRequestDto, SignUpResponseDto } from "./dtos/auth.dtos";
+import { AuthUserDto, SignInRequestDto, SignInResponseDto, SignUpRequestDto, SignUpResponseDto } from "../dtos/auth.dtos";
 
 export class AuthApiService extends BaseApiService{
     public signIn(dto: SignInRequestDto): Promise<SignInResponseDto>{
@@ -11,6 +11,6 @@ export class AuthApiService extends BaseApiService{
     }
 
     public me(): Promise<AuthUserDto>{
-        return this.client.get('/me');
+        return this.client.get('/auth/me');
     }
 }

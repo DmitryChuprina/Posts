@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Posts.Application.Core;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Posts.Application.Services;
 using Posts.Contract.Models;
 using Posts.Contract.Models.Users;
@@ -11,14 +11,11 @@ namespace Posts.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UsersService _usersService;
-        private readonly ICurrentUser _currentUser;
 
         public UsersController(
-            UsersService usersService,
-            ICurrentUser currentUser
+            UsersService usersService
         ) { 
             _usersService = usersService;
-            _currentUser = currentUser;
         }
 
         [HttpGet("is-taken/email")]
@@ -31,6 +28,40 @@ namespace Posts.Api.Controllers
         public Task<IsTakenDto> UsernameIsTaken([FromQuery] UsernameIsTakenDto dto)
         {
             return _usersService.UsernameIsTaken(dto);
+        }
+
+        [HttpGet("profile")]
+        [Authorize]
+        public Task<UserProfileDto> GetCurrentUserProfile()
+        {
+            return _usersService.GetCurrentUserProfile();
+        }
+
+        [HttpGet("profile/{id}")]
+        public Task<UserProfileDto> GetUserProfile([FromRoute] Guid id)
+        {
+            return _usersService.GetUserProfile(id);
+        }
+
+        [HttpPut("profile")]
+        [Authorize]
+        public Task<UserProfileDto> UpdateCurrentUserProfile([FromBody] UpdateUserProfileDto profile)
+        {
+            return _usersService.UpdateCurrentUserProfile(profile);
+        }
+
+        [HttpGet("security")]
+        [Authorize]
+        public Task<UserSecurityDto> GetCurrentUserSecurity()
+        {
+            return _usersService.GetCurrentUserSecurity();
+        }
+
+        [HttpPut("security")]
+        [Authorize]
+        public Task<UserSecurityDto> UpdateCurrentUserSecurity([FromBody] UpdateUserSecurityDto dto)
+        {
+            return _usersService.UpdateCurrentUserSecurity(dto);
         }
     }
 }

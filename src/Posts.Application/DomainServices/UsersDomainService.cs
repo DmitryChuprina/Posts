@@ -1,9 +1,8 @@
 ﻿using Posts.Application.Exceptions;
 using Posts.Application.Repositories;
-using Posts.Contract.Models;
 using Posts.Domain.Entities;
 
-namespace Posts.Application.Rules
+namespace Posts.Application.DomainServices
 {
     public class UsersDomainService
     {

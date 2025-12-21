@@ -30,9 +30,9 @@ namespace Posts.Api.Middlewares
             var status = ex switch
             {
                 UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+                InvalidRefreshTokenException => HttpStatusCode.Unauthorized,
                 ValidationException => HttpStatusCode.BadRequest,
                 InvalidCredentialsException => HttpStatusCode.BadRequest,
-                InvalidRefreshTokenException => HttpStatusCode.BadRequest,
                 ValueIsTakenException => HttpStatusCode.BadRequest,
                 EntityNotFoundException => HttpStatusCode.NotFound,
                 ForbiddenException => HttpStatusCode.Forbidden,

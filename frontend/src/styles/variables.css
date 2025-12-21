@@ -21,6 +21,7 @@
   --surface: #FFFFFF;
   --text: #0E0E12BF;
   --text-muted: #6D7381;
+  --border: color-mix(in oklab, var(--text-muted) 15%, transparent);
 
   /* GLOBAL SHAPES & TRANSITIONS */
   --radius: 10px;

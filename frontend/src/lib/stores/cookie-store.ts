@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import type { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export interface ICookieStorage {
@@ -45,5 +45,38 @@ export class MiddlewareCookieStorage implements ICookieStorage {
 
     delete(key: string) {
         this.res.cookies.delete(key);
+    }
+}
+
+export class ClientCookieStorage implements ICookieStorage {
+    get(key: string): string | undefined {
+        if (typeof document === 'undefined') {
+            return undefined;
+        }
+
+        const match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
+        return match ? match[2] : undefined;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    set(key: string, value: string, opts?: any): void {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        let cookieString = `${key}=${value}; path=/`;
+
+        if (opts?.maxAge) {
+            cookieString += `; max-age=${opts.maxAge}`;
+        }
+
+        document.cookie = cookieString;
+    }
+
+    delete(key: string): void {
+        if (typeof document === 'undefined') { 
+            return;
+        }
+        document.cookie = `${key}=; path=/; max-age=0`;
     }
 }

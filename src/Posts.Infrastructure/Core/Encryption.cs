@@ -1,4 +1,5 @@
 ﻿using Posts.Application.Core;
+using Posts.Infrastructure.Core.Models;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -9,14 +10,14 @@ namespace Posts.Infrastructure.Core
         private readonly int _tagSizeInBytes = 16;
         private readonly byte[] _key;
 
-        public Encryption(string key)
+        public Encryption(EncryptionOptions opts)
         {
-            if (key.Length < 32)
+            if (string.IsNullOrEmpty(opts.EncryptionKey) || opts.EncryptionKey.Length < 32)
             {
                 throw new ArgumentException("Encryption key should be 32 chars (256-bit)");
             }
 
-            _key = Encoding.UTF8.GetBytes(key.Substring(0, 32));
+            _key = Encoding.UTF8.GetBytes(opts.EncryptionKey.Substring(0, 32));
         }
 
         public string Encrypt(string plainText)

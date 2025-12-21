@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { FieldValues, RegisterOptions, useFormContext } from "react-hook-form";
 
-type AuthCheckboxProps = {
+type FormCheckboxProps = {
   name: string;
   label?: string;
   opts?: RegisterOptions<FieldValues, string>;
@@ -10,7 +10,7 @@ type AuthCheckboxProps = {
   labelClassName?: string;
 };
 
-export function AuthCheckbox({ name, label, className, labelClassName, opts, ...props }: AuthCheckboxProps){
+export function FormCheckbox({ name, label, className, labelClassName, opts, ...props }: FormCheckboxProps){
   const { register } = useFormContext();
 
   return (

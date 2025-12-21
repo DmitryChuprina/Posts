@@ -19,6 +19,7 @@
   /* SYSTEM COLORS */
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-border: var(--border);
   --color-text: var(--text);
   --color-muted: var(--text-muted);
 

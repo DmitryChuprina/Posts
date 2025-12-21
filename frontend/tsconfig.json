@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,10 +23,21 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/app/*"],
-      "@/ui/*": ["./src/app/shared/ui/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/services/*": ["./src/lib/services/*"],
+      "@/styles/*": [
+        "./src/styles/*"
+      ],
+      "@/public/*": [
+        "./public/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
+      ],
+      "@/services/*": [
+        "./src/lib/services/*"
+      ],
+      "@/*": [
+        "./src/app/*"
+      ],
     }
   },
   "include": [
@@ -31,7 +46,10 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
-, "tailwind.config.js"  ],
-  "exclude": ["node_modules"]
+    "**/*.mts",
+    "tailwind.config.js"
+, "src/app/_components/popover.tss"  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

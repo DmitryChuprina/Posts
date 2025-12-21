@@ -1,14 +1,10 @@
+import { AuthTokensDto, AuthUserDto } from "../dtos/auth.dtos";
 import { ICookieStorage } from "./cookie-store";
 
-export interface ISesionTokens {
-    accessToken: string;
-    refreshToken: string;
-    expiredAt: string;
-}
-
-export interface ISessionUser {
-    id: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ISesionTokens extends AuthTokensDto {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ISessionUser extends AuthUserDto{}
 
 const COOKIE_TOKENS = "tokens";
 const COOKIE_USER_DATA = "user_data";

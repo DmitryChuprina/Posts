@@ -5,8 +5,6 @@ import { checkEmailAvailability, checkUsernameAvailability } from "./actions/use
 const EMAIL_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const USERNAME_REGEX = /^[A-Za-z0-9_]{3,24}$/;
 
-const NAME_REGEX = /^\p{L}+$/u;
-
 const MAX_LENGTH = 255;
 
 const DEFAULT_DEBOUCE_DELAY = 500;
@@ -85,6 +83,11 @@ export const emailOrUsernameSchema = z.string()
         (val) => EMAIL_REGEX.test(val) || USERNAME_REGEX.test(val),
         "Invalid email or username"
     );
+
+export const partOfNameSchema = z.string()
+    .max(MAX_LENGTH, `Enter a maximum of ${MAX_LENGTH} characters`)
+    .min(3, "Enter at least 3 characters")
+    .regex(/^\p{L}+$/u, "Must contain only letters");
 
 export const passwordSchema = z.string()
     .min(8, "Password must be at least 8 characters")

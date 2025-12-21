@@ -12,6 +12,6 @@
         public bool IsEmailConfirmed { get; set; }
 
         public string? Description { get; set; }
-        public string? ProfileImageUrl { get; set; }
+        public FileDto? ProfileImage { get; set; }
     }
 }

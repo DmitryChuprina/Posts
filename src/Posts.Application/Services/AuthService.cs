@@ -1,8 +1,9 @@
 ﻿using Posts.Application.Core;
 using Posts.Application.Core.Models;
 using Posts.Application.Exceptions;
+using Posts.Application.Extensions;
 using Posts.Application.Repositories;
-using Posts.Application.Rules;
+using Posts.Application.DomainServices;
 using Posts.Contract.Models.Auth;
 using Posts.Domain.Entities;
 using Posts.Domain.Shared.Enums;
@@ -15,6 +16,7 @@ namespace Posts.Application.Services
         private readonly UsersDomainService _usersDomainService;
 
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IS3Client _s3Client;
         private readonly ITokenHasher _tokenHasher;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
@@ -31,8 +33,9 @@ namespace Posts.Application.Services
             IJwtTokenGenerator jwtTokenGenerator,
             IRefreshTokenGenerator refreshTokenGenerator,
             ITokenHasher tokenHasher,
-            IPasswordHasher passwordHasher)
-        {
+            IPasswordHasher passwordHasher,
+            IS3Client s3Client
+        ){
             _usersDomainService = usersDomainService;
 
             _usersRepository = usersRepository;
@@ -42,6 +45,8 @@ namespace Posts.Application.Services
             _tokenHasher = tokenHasher;
             _jwtTokenGenerator = jwtTokenGenerator;
             _refreshTokenGenerator = refreshTokenGenerator;
+            _s3Client = s3Client;
+
             _currentUser = currentUser;
         }
 
@@ -84,7 +89,7 @@ namespace Posts.Application.Services
 
             Session session = new Session {
                 UserId = user.Id,
-                AccessToken = _tokenHasher.Hash(accessToken),
+                AccessToken = _tokenHasher.Hash(accessToken.Token),
                 RefreshToken = _tokenHasher.Hash(refreshToken),
                 IsRevoked = false,
                 ExpiresAt = dto.RememberMe ? null : DateTime.UtcNow.AddDays(1)
@@ -97,8 +102,9 @@ namespace Posts.Application.Services
                 User = toDto(user),
                 Tokens = new AuthTokensDto
                 {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken
+                    AccessToken = accessToken.Token,
+                    RefreshToken = refreshToken,
+                    ExpiresAt = accessToken.ExpiresAt
                 }
             };
         }
@@ -132,15 +138,16 @@ namespace Posts.Application.Services
 
             var (accessToken, refreshToken) = GenerateTokens(user);
 
-            session.AccessToken = _tokenHasher.Hash(accessToken);
+            session.AccessToken = _tokenHasher.Hash(accessToken.Token);
             session.RefreshToken = _tokenHasher.Hash(refreshToken);
 
             await _sessionsRepository.Update(session);
 
             return new AuthTokensDto
             {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken
+                AccessToken = accessToken.Token,
+                RefreshToken = refreshToken,
+                ExpiresAt = accessToken.ExpiresAt
             };
         }
 
@@ -156,7 +163,7 @@ namespace Posts.Application.Services
             return toDto(user);
         }
 
-        private (string, string) GenerateTokens(User user)
+        private (JwtTokenGeneratorResult, string) GenerateTokens(User user)
         {
             var tokenUser = new TokenUser
             {
@@ -178,7 +185,7 @@ namespace Posts.Application.Services
             FirstName = user.FirstName,
             LastName = user.LastName,
             Description = user.Description,
-            ProfileImageUrl = user.ProfileImageUrl,
+            ProfileImage = _s3Client.GetPublicFileDto(user.ProfileImageKey)
         };
     }
 }

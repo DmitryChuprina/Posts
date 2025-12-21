@@ -1,6 +1,7 @@
 import { ISesionTokens, SessionStore } from "../../stores/session";
-import { httpClient } from "../../clients/http-client";
+import { ApiError, httpClient } from "../../clients/http-client";
 import { redirect } from "next/navigation";
+import { AuthTokensDto } from "../../dtos/auth.dtos";
 
 export interface IRequestLock {
     promise: Promise<void> | null;
@@ -9,7 +10,8 @@ export interface IRequestLock {
 export class AuthService {
     constructor(
         private readonly session: SessionStore,
-        private readonly lock?: IRequestLock 
+        private readonly lock?: IRequestLock,
+        private readonly preventRedirect?: boolean
     ) { }
 
     async getValidAccessToken(): Promise<string | null> {
@@ -23,7 +25,7 @@ export class AuthService {
         }
 
         const nowWithBuffer = new Date(Date.now() + 10000);
-        if (new Date(tokens.expiredAt) > nowWithBuffer) {
+        if (new Date(tokens.expiresAt) > nowWithBuffer) {
             return tokens.accessToken;
         }
 
@@ -37,9 +39,9 @@ export class AuthService {
 
         if (!this.lock.promise) {
             this.lock.promise = this.makeRefreshRequest(oldTokens)
-                .then(() => {})
-                .finally(() => { 
-                    if(this.lock){
+                .then(() => { })
+                .finally(() => {
+                    if (this.lock) {
                         this.lock.promise = null
                     }
                 });
@@ -49,25 +51,31 @@ export class AuthService {
             await this.lock.promise;
             return this.session.getTokens()?.accessToken || null;
         } catch {
-             return null; 
+            return null;
         }
     }
 
-    private async makeRefreshRequest(oldTokens: ISesionTokens): Promise<string> {
+    private async makeRefreshRequest(oldTokens: ISesionTokens): Promise<string | null> {
         try {
-            const newTokens = await httpClient.post<ISesionTokens>('/auth/refresh-token', oldTokens);
-            
-            if(!newTokens) {
-                throw new Error("Empty tokens");
-            }
-
+            const newTokens = await httpClient
+                .post<AuthTokensDto>('/auth/refresh-token', oldTokens);
             this.session.setTokens(newTokens);
             return newTokens.accessToken;
-        } catch(err) {
+        } catch (err) {
             console.error(`Error when refreshing tokens: `, err);
 
-            this.session.clean();
-            redirect('/sign-in');
+            if (
+                err instanceof ApiError &&
+                ![0, 500].includes(err.status)
+            ) {
+                this.session.clean();
+                if (!this.preventRedirect) {
+                    redirect('/sign-in');
+                }
+                return null;
+            }
+
+            return oldTokens.accessToken;
         }
     }
 }

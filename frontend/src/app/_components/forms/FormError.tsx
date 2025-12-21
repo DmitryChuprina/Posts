@@ -1,12 +1,12 @@
 import clsx from "clsx";
-import './AuthError.css';
+import './FormError.css';
 
-interface AuthErrorProps {
+interface FormErrorProps {
     message?: string;
     className?: string;
 }
 
-export function AuthError({ message, className }: AuthErrorProps) {
+export function FormError({ message, className }: FormErrorProps) {
     if (!message) return null;
 
     return (

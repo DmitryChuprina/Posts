@@ -22,7 +22,7 @@ export async function middleware(req: NextRequest) {
     const res = NextResponse.next();
     const storage = new MiddlewareCookieStorage({ req, res });
     const session = new SessionStore(storage);
-    const authService = new AuthService(session);
+    const authService = new AuthService(session, undefined, true);
 
     const accessToken = await authService.getValidAccessToken();
 

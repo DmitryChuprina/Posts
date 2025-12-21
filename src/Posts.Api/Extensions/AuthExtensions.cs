@@ -20,27 +20,21 @@ namespace Posts.Api.Extensions
                      OnAuthenticationFailed = (context) =>
                      {
                          var logger = context.HttpContext.GetLogger();
-                         var tokenIsExpired = context.Exception is SecurityTokenExpiredException;
-
-                         context.NoResult();
-
                          logger.LogWarning(context.Exception, "JWT authentication failed");
-
-                         return context.HttpContext
-                            .WriteError(
-                                HttpStatusCode.Unauthorized,
-                                "Invalid access token",
-                                "InvalidAccessToken",
-                                new { tokenIsExpired });
+                         return Task.CompletedTask;
                      },
                      OnChallenge = context =>
                      {
                          context.HandleResponse();
 
+                         var isInvalidToken = context.AuthenticateFailure != null;
+
                          return context.HttpContext.WriteError(
                              HttpStatusCode.Unauthorized,
-                             "Authentication required",
-                             "AuthenticationRequired",
+                             isInvalidToken ? "Invalid access token" : "Authentication required",
+                             isInvalidToken ? "InvalidAccessToken" : "AuthenticationRequired",
+                             isInvalidToken ? 
+                                new { tokenIsExpired = context.AuthenticateFailure is SecurityTokenExpiredException } : 
                              null
                          );
                      }

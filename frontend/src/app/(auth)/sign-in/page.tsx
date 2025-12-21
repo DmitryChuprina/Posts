@@ -1,17 +1,17 @@
 "use client"
 
-import { AuthInput } from "@/components/auth/forms/AuthInput";
-import { AuthCheckbox } from "@/components/auth/forms/AuthCheckbox";
+import { FormInput } from "@/_components/forms/FormInput";
+import { FormCheckbox } from "@/_components/forms/FormCheckbox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
 import { signInAction } from "@/lib/actions/auth";
-import { AuthApiErrorAlert } from "@/components/auth/forms/AuthApiErrorAlert";
+import { FormApiErrorAlert } from "@/_components/forms/FormApiErrorAlert";
 import { emailOrUsernameSchema } from "@/lib/schemas";
 
-export const signInSchema = z.object({
+const signInSchema = z.object({
     emailOrUsername: emailOrUsernameSchema,
     password: z.string(),
     rememberMe: z.boolean(),
@@ -46,27 +46,27 @@ export default function SignInPage() {
                 <h2 className="text-heading mb-2">Log in to your account</h2>
                 <fieldset disabled={loading}>
                     <div className="flex flex-col gap-2">
-                        <AuthInput
+                        <FormInput
                             type="text"
                             placeholder="Enter email or username"
                             label="Email or username"
                             name="emailOrUsername"
                             required={true}>
-                        </AuthInput>
-                        <AuthInput
+                        </FormInput>
+                        <FormInput
                             type="password"
                             placeholder="Enter password"
                             label="Password"
                             name="password"
                             required={true}>
-                        </AuthInput>
+                        </FormInput>
                     </div>
                     <div className="my-2.5 ps-0.5 pe-1 w-full flex flex-row">
-                        <AuthCheckbox name="rememberMe" label="Remember me"></AuthCheckbox>
+                        <FormCheckbox name="rememberMe" label="Remember me"></FormCheckbox>
                         <Link className="text-muted text-caption ms-auto" href="/">Forgot password?</Link>
                     </div>
                 </fieldset>
-                <AuthApiErrorAlert message={apiError} setMessage={setApiError} form={form} className="mb-2"></AuthApiErrorAlert>
+                <FormApiErrorAlert message={apiError} setMessage={setApiError} form={form} className="mb-2"></FormApiErrorAlert>
                 <div className="flex flex-col gap-2">
                     <button className="btn btn-primary" type="submit" disabled={disableSubmit}>
                         {loading ? "Loading..." : "Sign in"}

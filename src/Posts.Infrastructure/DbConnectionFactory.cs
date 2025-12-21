@@ -9,8 +9,12 @@ namespace Posts.Infrastructure
         private readonly string _connectionString;
         private readonly ICancellation _cancellation;
 
-        public DbConnectionFactory(string connectionString, ICancellation cancellation) {
-            _connectionString = connectionString;
+        public DbConnectionFactory(DbConnectionOptions connOpts, ICancellation cancellation) {
+            if (string.IsNullOrWhiteSpace(connOpts.ConnectionString)) {
+                throw new ArgumentNullException(nameof(connOpts), "ConnectionString is empty");
+            }
+
+            _connectionString = connOpts.ConnectionString;
             _cancellation = cancellation;
         }
 

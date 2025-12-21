@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 
-interface ApiErrorAlertProps {
+interface FormErrorAlertProps {
   message?: string | null;
   setMessage?: (msg: string | null) => void,
   className?: string;
@@ -10,7 +10,7 @@ interface ApiErrorAlertProps {
   form?: UseFormReturn<any>
 }
 
-export function AuthApiErrorAlert({ message, setMessage, className, form }: ApiErrorAlertProps) {
+export function FormApiErrorAlert({ message, setMessage, className, form }: FormErrorAlertProps) {
   useEffect(() => {
     if (!form || !message || !setMessage) {
       return;

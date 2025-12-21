@@ -13,9 +13,9 @@ export class ApiError extends Error {
     }
 }
 
-export type RBody = object | null | undefined;
-export type ROpts = { 
-    headers?: Record<string, string> 
+export type RBody = FormData | object | null | undefined;
+export type ROpts = {
+    headers?: Record<string, string>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     params?: Record<string, any>
 }
@@ -30,17 +30,22 @@ export class HttpClient {
             "Content-Type": "application/json",
         } as Record<string, string>;
 
+        if(config.body instanceof FormData){
+            delete headers["Content-Type"];
+        }
+
         const url = `${BASE_URL}${endpoint}`;
         const params = config.params ? `?${qs.stringify(config.params)}` : '';
-
-        const response = await fetch(url + params, {
+        const input = url + params;
+        const init = {
             ...config,
             headers,
-        });
+        }
+
+        const response = await fetch(input, init);
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-
             throw new ApiError(
                 response.status ?? 0,
                 errorData.message || `API Error: ${response.statusText}`,
@@ -61,15 +66,25 @@ export class HttpClient {
     }
 
     async post<T>(url: string, body: RBody, config?: RConf) {
-        return this.request<T>(url, { ...config, method: "POST", body: JSON.stringify(body) });
+        return this.request<T>(url, { ...config, method: "POST", body: this.transformBody(body) });
     }
 
     async put<T>(url: string, body: RBody, config?: RConf) {
-        return this.request<T>(url, { ...config, method: "PUT", body: JSON.stringify(body) });
+        return this.request<T>(url, { ...config, method: "PUT", body: this.transformBody(body) });
     }
 
     async delete<T>(url: string, config?: RConf) {
         return this.request<T>(url, { ...config, method: "DELETE" });
+    }
+
+    protected transformBody(body: RBody) {
+        if (body == null) {
+            return body;
+        }
+        if (body instanceof FormData) {
+            return body;
+        }
+        return JSON.stringify(body);
     }
 }
 

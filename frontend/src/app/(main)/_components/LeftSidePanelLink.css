@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+.left-panel_link-container{
+    @apply flex items-center justify-center w-full;
+}
+
+.left-panel_link-container:hover .left-panel_link-title,
+.left-panel_link-container:hover .left-panel_link-icon,
+.left-panel_link-container.active .left-panel_link-title,
+.left-panel_link-container.active .left-panel_link-icon{
+    @apply text-(--color-text)!;
+}
+
+.left-panel_link{
+    @apply flex flex-row items-center size-11
+        text-(--color-muted) p-2 text-lg font-medium justify-center
+        hover:bg-(--btn-bg) rounded-full;
+}
+
+.expanded .left-panel_link{
+    @apply md:justify-start md:rounded-3xl md:px-3 md:w-[150px];
+}
+
+.left-panel_link-icon{
+    @apply w-7 h-7;
+}
+
+.expanded .left-panel_link-icon{
+    @apply md:mr-3;
+}
+
+.left-panel_link-title{
+    @apply h-full overflow-hidden max-w-0 opacity-0 flex-1;
+    transition: all 800ms;
+}
+
+.expanded .left-panel_link-title{
+    @apply md:max-w-[150px] md:opacity-100;
+}
+
+.expanded .left-panel_link-container .popover{
+    @apply md:hidden;
+}

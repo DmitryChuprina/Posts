@@ -23,15 +23,20 @@ var connectionString = builder.Configuration.GetConnectionString("PostsDatabase"
 var jwtOptions = builder.Configuration.GetSection("JwtOptions").Get<JwtOptions>()
     ?? throw new ArgumentNullException("JwtOptions are not provided");
 
-var encryptionKey = builder.Configuration.GetValue<string>("EncryptionKey")
-    ?? throw new ArgumentNullException("EncryptionKey are not provided");
+var encryptionOptions = builder.Configuration.GetSection("EncryptionOptions").Get<EncryptionOptions>()
+    ?? throw new ArgumentNullException("EncryptionOptions are not provided");
+
+var s3Options = builder.Configuration.GetSection("S3Options").Get<S3Options>()
+    ?? throw new ArgumentNullException("S3Options are not provided");
 
 var runMigrations = builder.Configuration.GetValue<bool?>("RunMigrations") ?? false;
+
+var dbOpts = new DbConnectionOptions { ConnectionString = connectionString };
 
 builder.Services
     .AddAuth(jwtOptions)
     .AddCore()
-    .AddInfrastructure(connectionString, encryptionKey, jwtOptions)
+    .AddInfrastructure(dbOpts, encryptionOptions, jwtOptions, s3Options)
     .AddApplication();
 
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
