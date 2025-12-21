@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Posts.Application.Rules;
+using Posts.Application.DomainServices;
 using Posts.Application.Services;
 
 namespace Posts.Application

@@ -1,28 +1,10 @@
 volumes:
   posts-data:
+  minio-data:
 
 services:
-  posts.api:
-    image: ${DOCKER_REGISTRY-}postsapi
-    build:
-      context: .
-      dockerfile: src/Posts.Api/Dockerfile
-    ports:
-      - "5100:8080"
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: "http://0.0.0.0:8080"
-      JwtOptions__Issuer: "PostsApi"
-      JwtOptions__Audience: "PostsFrontend"
-      JwtOptions__Key: "PUT_32+_SYMBOLS_RANDOM_KEY_HERE"
-      JwtOptions__ExpiresMinutes: 20
-      ConnectionStrings__PostsDatabase: "Host=posts.db;Port=5432;Database=posts;Username=postgres;Password=postgres"
-      EncryptionKey: "PUT_32+_SYMBOLS_RANDOM_KEY_HERE________________"
-      RunMigrations: true
-
-  posts.db:
+  posts-db:
     image: pgvector/pgvector:pg17-trixie
-    container_name: posts-db
     restart: always
     environment:
       POSTGRES_USER: postgres
@@ -32,3 +14,61 @@ services:
       - "6432:5432"
     volumes:
       - posts-data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+
+  create-buckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/my-bucket;
+      /usr/bin/mc anonymous set public myminio/my-bucket;
+      exit 0;
+      "
+  
+  posts-api:
+    image: ${DOCKER_REGISTRY-}postsapi
+    build:
+      context: .
+      dockerfile: src/Posts.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://0.0.0.0:8080"
+      JwtOptions__Issuer: "PostsApi"
+      JwtOptions__Audience: "PostsFrontend"
+      JwtOptions__Key: "PUT_32+_SYMBOLS_RANDOM_KEY_HERE________________"
+      JwtOptions__ExpiresMinutes: 20
+      EncryptionOptions__EncryptionKey: "PUT_32+_SYMBOLS_RANDOM_KEY_HERE________________"
+      S3Options__ServiceUrl: "http://minio:9000"
+      S3Options__AccessKey: "minioadmin"
+      S3Options__SecretKey: "minioadmin"
+      S3Options__BucketName: "my-bucket"
+      S3Options__ForcePathStyle: true
+      S3Options__PublicDomain: "http://localhost:9000/my-bucket"
+      ConnectionStrings__PostsDatabase: "Host=posts-db;Port=5432;Database=posts;Username=postgres;Password=postgres"
+      RunMigrations: true
+      S3ConfigureCleanup: true
+    ports:
+      - 5062:8080
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    depends_on:
+      - posts-db
+      - minio

@@ -1,8 +1,9 @@
 ﻿using Posts.Application.Core;
 using Posts.Application.Core.Models;
 using Posts.Application.Exceptions;
+using Posts.Application.Extensions;
 using Posts.Application.Repositories;
-using Posts.Application.Rules;
+using Posts.Application.DomainServices;
 using Posts.Contract.Models.Auth;
 using Posts.Domain.Entities;
 using Posts.Domain.Shared.Enums;
@@ -15,9 +16,10 @@ namespace Posts.Application.Services
         private readonly UsersDomainService _usersDomainService;
 
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IS3Client _s3Client;
+        private readonly ITokenHasher _tokenHasher;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
-        private readonly IEncryption _encryption;
         private readonly ICurrentUser _currentUser;
 
         private readonly IUsersRepository _usersRepository;
@@ -30,18 +32,21 @@ namespace Posts.Application.Services
             ICurrentUser currentUser,
             IJwtTokenGenerator jwtTokenGenerator,
             IRefreshTokenGenerator refreshTokenGenerator,
-            IEncryption encryption,
-            IPasswordHasher passwordHasher)
-        {
+            ITokenHasher tokenHasher,
+            IPasswordHasher passwordHasher,
+            IS3Client s3Client
+        ){
             _usersDomainService = usersDomainService;
 
             _usersRepository = usersRepository;
             _sessionsRepository = sessionsRepository;
 
             _passwordHasher = passwordHasher;
+            _tokenHasher = tokenHasher;
             _jwtTokenGenerator = jwtTokenGenerator;
             _refreshTokenGenerator = refreshTokenGenerator;
-            _encryption = encryption;
+            _s3Client = s3Client;
+
             _currentUser = currentUser;
         }
 
@@ -70,7 +75,7 @@ namespace Posts.Application.Services
 
         public async Task<SignInResponseDto> SignIn(SignInRequestDto dto)
         {
-            var isEmail = Validators.IsEmail(dto.EmailOrUsername);
+            var isEmail = Validation.IsEmail(dto.EmailOrUsername);
 
             var user = isEmail ? await _usersRepository.GetByEmail(dto.EmailOrUsername) 
                                : await _usersRepository.GetByUsername(dto.EmailOrUsername);
@@ -84,10 +89,10 @@ namespace Posts.Application.Services
 
             Session session = new Session {
                 UserId = user.Id,
-                AccessToken = _encryption.Encrypt(accessToken),
-                RefreshToken = _encryption.Encrypt(refreshToken),
+                AccessToken = _tokenHasher.Hash(accessToken.Token),
+                RefreshToken = _tokenHasher.Hash(refreshToken),
                 IsRevoked = false,
-                ExpiresAt = dto.RememberMe ? null : DateTime.Now.AddDays(1)
+                ExpiresAt = dto.RememberMe ? null : DateTime.UtcNow.AddDays(1)
             };
 
             await _sessionsRepository.Add(session);
@@ -97,8 +102,9 @@ namespace Posts.Application.Services
                 User = toDto(user),
                 Tokens = new AuthTokensDto
                 {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken
+                    AccessToken = accessToken.Token,
+                    RefreshToken = refreshToken,
+                    ExpiresAt = accessToken.ExpiresAt
                 }
             };
         }
@@ -106,7 +112,7 @@ namespace Posts.Application.Services
         public async Task<AuthTokensDto> RefreshToken(AuthTokensDto dto)
         {
             var session = await _sessionsRepository
-                .GetByRefreshToken(_encryption.Encrypt(dto.RefreshToken));
+                .GetByRefreshToken(_tokenHasher.Hash(dto.RefreshToken));
 
             if (session is null)
             {
@@ -116,11 +122,11 @@ namespace Posts.Application.Services
             {
                 throw new InvalidRefreshTokenException("Session has been revoked.");
             }
-            if (session.ExpiresAt is not null && session.ExpiresAt < DateTime.Now)
+            if (session.ExpiresAt is not null && session.ExpiresAt < DateTime.UtcNow)
             {
                 throw new InvalidRefreshTokenException("Session is expired.");
             }
-            if(_encryption.Encrypt(dto.AccessToken) != session.AccessToken)
+            if(_tokenHasher.Hash(dto.AccessToken) != session.AccessToken)
             {
                 throw new InvalidRefreshTokenException("Invalid session data");
             }
@@ -132,15 +138,16 @@ namespace Posts.Application.Services
 
             var (accessToken, refreshToken) = GenerateTokens(user);
 
-            session.AccessToken = _encryption.Encrypt(accessToken);
-            session.RefreshToken = _encryption.Encrypt(refreshToken);
+            session.AccessToken = _tokenHasher.Hash(accessToken.Token);
+            session.RefreshToken = _tokenHasher.Hash(refreshToken);
 
             await _sessionsRepository.Update(session);
 
             return new AuthTokensDto
             {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken
+                AccessToken = accessToken.Token,
+                RefreshToken = refreshToken,
+                ExpiresAt = accessToken.ExpiresAt
             };
         }
 
@@ -156,7 +163,7 @@ namespace Posts.Application.Services
             return toDto(user);
         }
 
-        private (string, string) GenerateTokens(User user)
+        private (JwtTokenGeneratorResult, string) GenerateTokens(User user)
         {
             var tokenUser = new TokenUser
             {
@@ -178,7 +185,7 @@ namespace Posts.Application.Services
             FirstName = user.FirstName,
             LastName = user.LastName,
             Description = user.Description,
-            ProfileImageUrl = user.ProfileImageUrl,
+            ProfileImage = _s3Client.GetPublicFileDto(user.ProfileImageKey)
         };
     }
 }

@@ -16,11 +16,16 @@ namespace Posts.Infrastructure.Core
 
         public JwtTokenGenerator(JwtOptions options)
         {
+            if (options.Key.Length < 32)
+            {
+                throw new ArgumentException("Jwt key should be 32 chars (256-bit)");
+            }
+
             _options = options;
             _keyBytes = Encoding.UTF8.GetBytes(_options.Key);
         }
 
-        public string Generate(List<Claim> claims, int? expiresMinutes = null)
+        public JwtTokenGeneratorResult Generate(List<Claim> claims, int? expiresMinutes = null)
         {
             expiresMinutes = expiresMinutes ?? _options.ExpiresMinutes;
 
@@ -29,19 +34,25 @@ namespace Posts.Infrastructure.Core
                 SecurityAlgorithms.HmacSha256
             );
 
+            var expiresAt = DateTime.UtcNow.AddMinutes((int)expiresMinutes);
+
             var token = new JwtSecurityToken(
                 issuer: _options.Issuer,
                 audience: _options.Audience,
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddMinutes((int)expiresMinutes),
+                expires: expiresAt,
                 signingCredentials: creds
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new JwtTokenGeneratorResult
+            {
+                ExpiresAt = expiresAt,
+                Token = new JwtSecurityTokenHandler().WriteToken(token)
+            };
         }
 
-        public string GenerateByUser(TokenUser user)
+        public JwtTokenGeneratorResult GenerateByUser(TokenUser user)
         {
             var userId = user.Id;
             var userRole = user.Role;

@@ -1,0 +1,35 @@
+@theme {
+  /* BRAND COLORS */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-pressed: var(--primary-pressed);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-pressed: var(--accent-pressed);
+
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-pressed: var(--danger-pressed);
+
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-pressed: var(--success-pressed);
+
+  /* SYSTEM COLORS */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+
+  /* SHAPE & MOTION */
+  --radius-base: var(--radius);
+
+  --transition-fast: var(--transition-fast);
+  --transition-medium: var(--transition-medium);
+  --transition-slow: var(--transition-slow);
+
+  /* TYPOGRAPHY */
+  --font-sans: var(--font-family);
+}

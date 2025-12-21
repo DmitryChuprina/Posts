@@ -15,7 +15,8 @@ namespace Posts.Domain.Entities
         public string? LastName { get; set; }
 
         public string? Description { get; set; }
-        public string? ProfileImageUrl { get; set; }
+        public string? ProfileImageKey { get; set; }
+        public string? ProfileBannerKey { get; set; }
 
         public bool EmailIsConfirmed { get; set; }
 

@@ -1,0 +1,169 @@
+@layer components {
+
+  /* ===========================
+     BASE INPUT
+     =========================== */
+
+  .input {
+    /* Size variables */
+    --input-pad-x: 1rem;
+    --input-pad-y: 0.55rem;
+    --input-font-size: 1rem;
+    --input-radius: var(--radius);
+
+    /* Colors */
+    --input-bg: var(--surface);
+    --input-border: var(--text-muted);
+    --input-border-hover: var(--text);
+    --input-border-focus: var(--primary);
+    --input-border-error: var(--danger);
+
+    --input-text: var(--text);
+    --input-placeholder: var(--text-muted);
+
+    padding: var(--input-pad-y) var(--input-pad-x);
+    font-size: var(--input-font-size);
+    border-radius: var(--input-radius);
+
+    background: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--input-border);
+
+    @apply w-full transition-all;
+  }
+
+  .input::placeholder {
+    color: var(--input-placeholder);
+    opacity: 0.7;
+  }
+
+  .input:hover:not(:disabled):not(.input-error) {
+    border-color: var(--input-border-hover);
+  }
+
+  .input:focus-visible:not(.input-error) {
+    outline: none;
+    border-color: var(--input-border-focus);
+    box-shadow: 0 0 0 2px var(--input-border-focus);
+  }
+
+  .input:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* ERROR STATE */
+  .input-error {
+    border-color: var(--input-border-error) !important;
+  }
+
+  .input-error:focus-visible {
+    box-shadow: 0 0 0 2px var(--input-border-error);
+  }
+
+
+  /* ===========================
+     TEXTAREA
+     =========================== */
+
+  .textarea {
+    /* inherit variables from .input */
+    --input-pad-x: 1rem;
+    --input-pad-y: 0.55rem;
+    --input-font-size: 1rem;
+    --input-radius: var(--radius);
+
+    padding: var(--input-pad-y) var(--input-pad-x);
+    font-size: var(--input-font-size);
+    border-radius: var(--input-radius);
+
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--text-muted);
+
+    resize: vertical;
+    min-height: 4rem;
+
+    @apply w-full transition-all;
+  }
+
+  .textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+
+  .textarea:hover:not(:disabled):not(.input-error) {
+    border-color: var(--text);
+  }
+
+  .textarea:focus-visible:not(.input-error) {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary);
+  }
+
+  .textarea.input-error {
+    border-color: var(--danger);
+  }
+
+  .textarea.input-error:focus-visible {
+    box-shadow: 0 0 0 2px var(--danger);
+  }
+
+
+  /* ===========================
+     SIZE VARIANTS
+     =========================== */
+
+  .input-sm,
+  .textarea-sm {
+    --input-pad-x: 0.75rem;
+    --input-pad-y: 0.35rem;
+    --input-font-size: 0.875rem;
+  }
+
+  .input-md,
+  .textarea-md {
+    --input-pad-x: 1rem;
+    --input-pad-y: 0.55rem;
+    --input-font-size: 1rem;
+  }
+
+  .input-lg,
+  .textarea-lg {
+    --input-pad-x: 1.25rem;
+    --input-pad-y: 0.75rem;
+    --input-font-size: 1.125rem;
+  }
+
+
+  /* ===========================
+     RESPONSIVE VARIANTS
+     =========================== */
+
+  @media (max-width: 640px) {
+    .input {
+      --input-pad-x: 0.85rem;
+      --input-pad-y: 0.45rem;
+      --input-font-size: 0.95rem;
+    }
+
+    .textarea {
+      --input-pad-x: 0.85rem;
+      --input-pad-y: 0.45rem;
+      --input-font-size: 0.95rem;
+    }
+
+    .input-sm {
+      --input-pad-x: 0.6rem;
+      --input-pad-y: 0.3rem;
+      --input-font-size: 0.8rem;
+    }
+
+    .input-lg {
+      --input-pad-x: 1rem;
+      --input-pad-y: 0.6rem;
+      --input-font-size: 1rem;
+    }
+  }
+}

@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Posts.Application.Core;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Posts.Application.Services;
 using Posts.Contract.Models;
 using Posts.Contract.Models.Users;
@@ -13,8 +13,7 @@ namespace Posts.Api.Controllers
         private readonly UsersService _usersService;
 
         public UsersController(
-            UsersService usersService,
-            ICurrentUser currentUser
+            UsersService usersService
         ) { 
             _usersService = usersService;
         }
@@ -31,5 +30,38 @@ namespace Posts.Api.Controllers
             return _usersService.UsernameIsTaken(dto);
         }
 
+        [HttpGet("profile")]
+        [Authorize]
+        public Task<UserProfileDto> GetCurrentUserProfile()
+        {
+            return _usersService.GetCurrentUserProfile();
+        }
+
+        [HttpGet("profile/{id}")]
+        public Task<UserProfileDto> GetUserProfile([FromRoute] Guid id)
+        {
+            return _usersService.GetUserProfile(id);
+        }
+
+        [HttpPut("profile")]
+        [Authorize]
+        public Task<UserProfileDto> UpdateCurrentUserProfile([FromBody] UpdateUserProfileDto profile)
+        {
+            return _usersService.UpdateCurrentUserProfile(profile);
+        }
+
+        [HttpGet("security")]
+        [Authorize]
+        public Task<UserSecurityDto> GetCurrentUserSecurity()
+        {
+            return _usersService.GetCurrentUserSecurity();
+        }
+
+        [HttpPut("security")]
+        [Authorize]
+        public Task<UserSecurityDto> UpdateCurrentUserSecurity([FromBody] UpdateUserSecurityDto dto)
+        {
+            return _usersService.UpdateCurrentUserSecurity(dto);
+        }
     }
 }

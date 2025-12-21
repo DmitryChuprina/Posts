@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS users
     first_name varchar(255) NULL,
     last_name varchar(255) NULL,
     description TEXT NULL,
-    profile_image_url varchar(1024) NULL,
+    profile_image_key varchar(1024) NULL,
+    profile_banner_key varchar(1024) NULL,
 
     email_is_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
 
