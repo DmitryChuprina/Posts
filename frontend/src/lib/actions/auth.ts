@@ -27,18 +27,26 @@ export async function signUpAction(dto: SignUpRequestDto) {
         const [authApi] = await api(AuthApiService);
         await authApi.signUp(dto);
 
-        try{
+        try {
             await signIn(
-                { 
-                    emailOrUsername: dto.email, 
-                    password: dto.password, 
-                    rememberMe: true 
+                {
+                    emailOrUsername: dto.email,
+                    password: dto.password,
+                    rememberMe: true
                 },
                 authApi
             )
-        }catch(err){
+        } catch (err) {
             console.error(`Error when login after sign-up`, err);
             redirect('/sign-in')
         }
     });
+}
+
+export async function signOutAction() {
+    return safeAction(async () => {
+        const session = await getSession();
+        session.clean();
+        redirect('/sign-in');
+    })
 }

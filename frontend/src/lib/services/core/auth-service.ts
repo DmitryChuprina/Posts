@@ -3,25 +3,24 @@ import { ApiError, httpClient } from "../../clients/http-client";
 import { redirect } from "next/navigation";
 import { AuthTokensDto } from "../../dtos/auth.dtos";
 
-export interface IRequestLock {
-    promise: Promise<void> | null;
-}
+const globalLocks = new Map<string, Promise<unknown>>();
 
 export class AuthService {
     constructor(
         private readonly session: SessionStore,
-        private readonly lock?: IRequestLock,
         private readonly preventRedirect?: boolean
     ) { }
 
     async getValidAccessToken(): Promise<string | null> {
-        if (this.lock?.promise) {
-            await this.lock.promise;
-        }
-
         const tokens = this.session.getTokens();
         if (!tokens) {
             return null;
+        }
+
+        const lock = globalLocks.get(tokens.refreshToken);
+        if (lock) {
+            await lock;
+            return this.getValidAccessToken();
         }
 
         const nowWithBuffer = new Date(Date.now() + 10000);
@@ -33,22 +32,12 @@ export class AuthService {
     }
 
     private async performRefresh(oldTokens: ISesionTokens): Promise<string | null> {
-        if (!this.lock) {
-            return this.makeRefreshRequest(oldTokens);
-        }
-
-        if (!this.lock.promise) {
-            this.lock.promise = this.makeRefreshRequest(oldTokens)
-                .then(() => { })
-                .finally(() => {
-                    if (this.lock) {
-                        this.lock.promise = null
-                    }
-                });
-        }
+        const lockKey = oldTokens.refreshToken;
+        const lock = this.makeRefreshRequest(oldTokens)
+        globalLocks.set(lockKey, lock)
 
         try {
-            await this.lock.promise;
+            await lock.finally(() => globalLocks.delete(lockKey))
             return this.session.getTokens()?.accessToken || null;
         } catch {
             return null;

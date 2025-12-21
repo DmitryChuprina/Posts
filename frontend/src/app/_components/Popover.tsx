@@ -2,6 +2,7 @@
 
 import clsx from "clsx";
 import { useState } from "react";
+import { NoSSR } from "./NoSsr";
 
 import './Popover.css';
 
@@ -45,25 +46,27 @@ export default function Popover({ children, popover, position = 'left-bottom', t
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            {
-                showed && trigger === 'click' && (
-                    <div className="popover-backdrop" onClick={handleClick}></div>
-                )
-            }
-            <div
-                className={clsx(
-                    "popover",
-                    `popover_${position}`,
-                    popoverClassName,
-                    showed ? 'showed' : ''
-                )}
-            >
+            <NoSSR>
                 {
-                    typeof popover === 'string' ?
-                        (<span>{popover}</span>) :
-                        (popover)
+                    showed && trigger === 'click' && (
+                        <div className="popover-backdrop" onClick={handleClick}></div>
+                    )
                 }
-            </div>
+                <div
+                    className={clsx(
+                        "popover",
+                        `popover_${position}`,
+                        popoverClassName,
+                        showed ? 'showed' : ''
+                    )}
+                >
+                    {
+                        typeof popover === 'string' ?
+                            (<span>{popover}</span>) :
+                            (popover)
+                    }
+                </div>
+            </NoSSR>
             <div
                 className="popover-container"
                 onClick={handleClick}

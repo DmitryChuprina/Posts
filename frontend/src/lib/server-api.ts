@@ -2,15 +2,13 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { ServerCookieStorage } from "./stores/cookie-store";
 import { SessionStore } from "./stores/session";
-import { AuthService, IRequestLock } from "./services/core/auth-service";
+import { AuthService } from "./services/core/auth-service";
 import { AuthHttpClient } from "./clients/auth-http-client";
 import { BaseApiService } from "./services/core/base-api-service";
 
 type ApiServiceConstructor<T extends BaseApiService = BaseApiService> = new (client: AuthHttpClient) => T;
 type ApiServicesMap = Map<ApiServiceConstructor, BaseApiService>;
 type ServicesResult<T extends ApiServiceConstructor[]> = { [K in keyof T]: T[K] extends ApiServiceConstructor<infer I> ? I : never; };
-
-const getGlobalLock = cache((): IRequestLock => ({ promise: null }));
 
 export const getStorage = cache(async () => {
     const cookieStore = await cookies();
@@ -26,8 +24,7 @@ export const getSession = cache(async () => {
 
 const getContainer = cache(async () => {
     const session = await getSession();
-
-    const authService = new AuthService(session, getGlobalLock());
+    const authService = new AuthService(session);
     const httpClient = new AuthHttpClient(authService);
     const servicesMap: ApiServicesMap = new Map();
 

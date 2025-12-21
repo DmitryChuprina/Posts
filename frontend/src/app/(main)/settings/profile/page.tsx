@@ -44,8 +44,6 @@ export default function SettingsProfile() {
     const [loadingError, setLoadingError] = useState<string | null>(null);
     const [saveError, setSaveError] = useState<string | null>(null);
 
-    const formDisabled = !!loadingError || isLoading;
-
     const setProfile = (dto: UserProfileDto | undefined) => {
         if (!dto) {
             setLoadingError("Error loading profile");
@@ -99,7 +97,8 @@ export default function SettingsProfile() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const disabledSubmit = isLoadingProfileImage || isLoadingProfileBanner || isLoading;
+    const formDisabled = !!loadingError || isLoading;
+    const submitDisabled = !!loadingError || isLoadingProfileImage || isLoadingProfileBanner || isLoading;
     const bannerSrc = profileBannerPreview || profileBanner?.url;
 
     return (
@@ -108,7 +107,7 @@ export default function SettingsProfile() {
                 <MainLayoutHeader
                     className="flex flex-row justify-end items-center h-full px-4">
                     <button
-                        disabled={disabledSubmit}
+                        disabled={submitDisabled}
                         className="btn btn-sm btn-outline"
                         type="submit">Save
                     </button>
@@ -116,6 +115,7 @@ export default function SettingsProfile() {
                 <div className="w-full relative mb-8">
                     <UploadContainer
                         allowUpload={true}
+                        disabled={formDisabled}
                         onUploaded={(file) => {
                             setProfileBanner(file)
                             setProfileBannerPreview(file.url)
@@ -143,6 +143,7 @@ export default function SettingsProfile() {
                         onUploadError={setProfileImageError}
                         onIsLoadingChange={setIsLoadingProfileImage}
                         allowUpload={true}
+                        disabled={formDisabled}
                         className="size-[60px] md:size-[75px] absolute! bottom-0 left-[25px] md:left-[35px] translate-y-1/2 z-100">
                     </ProfileIcon>
                 </div>

@@ -8,6 +8,7 @@ import LeftSidePanelLink from "./LeftSidePanelLink";
 import { ISessionUser } from "@/lib/stores/session";
 import { ComponentType, SVGProps, useMemo, useState } from "react";
 import { clientStorage } from "@/lib/client-api";
+import { NoSSR } from "@/_components/NoSsr";
 import ProfileIcon from "../../_components/ProfileIcon";
 
 import ArrowIcon from "@/public/arrow.svg";
@@ -19,6 +20,7 @@ import SearchIcon from "@/public/menu/search.svg";
 import ChatIcon from "@/public/menu/chat.svg";
 
 import './LeftSidePanel.css';
+import { signOutAction } from "@/lib/actions/auth";
 
 interface IMenuItem {
     Icon: ComponentType<SVGProps<SVGSVGElement>>;
@@ -76,9 +78,11 @@ export default function LeftSidePanel({ user, defaultExpanded, expandedStoreKey 
                     <Link className="left-panel_header-logo" href="/">
                         <Image src="/logo.svg" alt="Posts" width={50} height={50}></Image>
                     </Link>
-                    <button className="left-panel_header-toogle" onClick={() => handleMenuExpandedChange(!expanded)}>
-                        <ArrowIcon className="icon"></ArrowIcon>
-                    </button>
+                    <NoSSR>
+                        <button className="left-panel_header-toogle" onClick={() => handleMenuExpandedChange(!expanded)}>
+                            <ArrowIcon className="icon"></ArrowIcon>
+                        </button>
+                    </NoSSR>
                 </div>
                 <nav>
                     <ul>
@@ -103,8 +107,8 @@ export default function LeftSidePanel({ user, defaultExpanded, expandedStoreKey 
                                     position="right-bottom"
                                     popover={(
                                         <div className="flex flex-col w-[200px] gap-2">
-                                            <button className="btn btn-outline">Settings</button>
-                                            <button className="btn btn-primary">Sign out</button>
+                                            <Link className="btn btn-outline" href="/settings">Settings</Link>
+                                            <button className="btn btn-primary" onClick={signOutAction}>Sign out</button>
                                         </div>
                                     )}
                                     className="left-panel_profile-details"
