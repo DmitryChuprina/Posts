@@ -1,6 +1,6 @@
 import { BaseApiService } from "./core/base-api-service";
 import { IsTakenDto } from "../dtos/shared.dtos";
-import { EmailIsTakenDto, UsernameIsTakenDto, UserProfileDto, UserSecurityDto } from "../dtos/users.dtos";
+import { EmailIsTakenDto, UpdateUserProfileDto, UsernameIsTakenDto, UserProfileDto, UserSecurityDto } from "../dtos/users.dtos";
 
 export class UsersApiService extends BaseApiService {
     emailIsTaken(dto: EmailIsTakenDto): Promise<IsTakenDto> {
@@ -15,7 +15,7 @@ export class UsersApiService extends BaseApiService {
         return this.client.get<UserProfileDto>('/users/profile')
     }
 
-    updateCurrentUserProfile(dto: UserProfileDto) {
+    updateCurrentUserProfile(dto: UpdateUserProfileDto) {
         return this.client.put<UserProfileDto>('/users/profile', dto)
     }
 

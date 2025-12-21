@@ -99,7 +99,7 @@ namespace Posts.Application.Services
 
             var uploads = await Task.WhenAll(
                 _s3Client.PersistFileDtoAsync(dto.ProfileImage, "users/images", true),
-                _s3Client.PersistFileDtoAsync(dto.ProfileImage, "users/banners", true)
+                _s3Client.PersistFileDtoAsync(dto.ProfileBanner, "users/banners", true)
             );
 
             user.FirstName = dto.FirstName;

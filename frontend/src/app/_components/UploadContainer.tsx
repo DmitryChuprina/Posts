@@ -9,6 +9,7 @@ import { uploadFile } from "@/lib/actions/files";
 
 import Camera from "@/public/camera.svg";
 import Spinner from "./Spinner";
+import { handleActionCall } from "@/lib/client-api";
 
 export interface UploadContainerProps {
     children: React.ReactNode,
@@ -69,36 +70,29 @@ export default function UploadContainer(
         const previewUrl = URL.createObjectURL(file);
         objectUrlRef.current = previewUrl;
         onStartUpload?.(previewUrl);
-        setIsLoading(true);
-        onIsLoadingChange?.(true);
 
-        try {
-            const response = await uploadFile(file, uploadType)
-
-            if (response.error) {
-                throw new Error(response.error);
+        await handleActionCall(
+            uploadFile(file, uploadType),
+            {
+                errorDefaultMessage: "Failed to upload image",
+                onIsLoading: (val) => {
+                    setIsLoading(val);
+                    onIsLoadingChange?.(val);
+                },
+                onData: (data) => {
+                    if (!data) {
+                        throw new Error();
+                    }
+                    onUploaded?.(data);
+                },
+                onError: (err) => onUploadError?.(err),
+                onFinally: () => {
+                    if (inputRef.current) {
+                        inputRef.current.value = '';
+                    }
+                }
             }
-
-            if (!response.data) {
-                throw new Error();
-            }
-
-            console.log("Uploaded", response.data)
-            onUploaded?.(response.data);
-        } catch (error) {
-            console.error("Upload failed", error);
-            let errorMessage = "Failed to upload image";
-            if (error instanceof Error && error.message) {
-                errorMessage = error.message;
-            }
-            onUploadError?.(errorMessage);
-        } finally {
-            setIsLoading(false);
-            onIsLoadingChange?.(false);
-            if (inputRef.current) {
-                inputRef.current.value = '';
-            }
-        }
+        )
     };
 
     return (

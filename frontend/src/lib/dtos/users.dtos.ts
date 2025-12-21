@@ -14,13 +14,16 @@ export interface UsernameIsTakenDto extends UserIsTakenRequestDto{
 
 export interface UserProfileDto{
     id: string;
-    firstName: string;
-    lastName: string;
+    firstName: string | null;
+    lastName: string | null;
     username: string;
-    description: string;
-    profileImage: FileDto;
-    profileBanner: FileDto;
+    description: string | null;
+    profileImage: FileDto | null;
+    profileBanner: FileDto | null;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface UpdateUserProfileDto extends Omit<UserProfileDto, 'id'>{}
 
 export interface UserSecurityDto{
     email: string;

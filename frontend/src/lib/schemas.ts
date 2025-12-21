@@ -57,6 +57,7 @@ const createDebouncedCheck = <TVal>(
 };
 
 export const emailSchema = z.string()
+    .trim()
     .max(MAX_LENGTH, `Enter a maximum of ${MAX_LENGTH} characters`)
     .min(3, "Enter at least 3 characters")
     .regex(EMAIL_REGEX, "Invalid email")
@@ -67,6 +68,7 @@ export const emailWithAviabilitySchema = (delay: number = DEFAULT_DEBOUCE_DELAY)
 }
 
 export const usernameSchema = z.string()
+    .trim()
     .max(MAX_LENGTH, `Enter a maximum of ${MAX_LENGTH} characters`)
     .min(3, "Enter at least 3 characters")
     .regex(USERNAME_REGEX, "Invalid username");
@@ -85,6 +87,7 @@ export const emailOrUsernameSchema = z.string()
     );
 
 export const partOfNameSchema = z.string()
+    .trim()
     .max(MAX_LENGTH, `Enter a maximum of ${MAX_LENGTH} characters`)
     .min(3, "Enter at least 3 characters")
     .regex(/^\p{L}+$/u, "Must contain only letters");
