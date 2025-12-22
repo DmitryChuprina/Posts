@@ -4,5 +4,7 @@
     {
         public required string PropertyName { get; set; }
         public required string ColumnName { get; set; }
+
+        public bool SkipOnUpdate { get; set; } = false;
     }
 }

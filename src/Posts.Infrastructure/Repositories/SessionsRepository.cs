@@ -33,7 +33,7 @@ namespace Posts.Infrastructure.Repositories
                 LIMIT 1;
             ";
             var parameters = new { RefreshToken = refreshToken };
-            return _connectionFactory.Use((conn, cancellation) =>
+            return _connectionFactory.Use((conn, cancellation, tr) =>
                 conn.QueryFirstOrDefaultAsync<Session>(
                     new CommandDefinition(
                         commandText: query,

@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Posts.Application.Core;
+using Posts.Application.Exceptions;
 using Posts.Application.Repositories.Base;
 using Posts.Domain.Entities.Base;
 using Posts.Infrastructure.Repositories.Models;
@@ -15,7 +16,8 @@ namespace Posts.Infrastructure.Repositories.Base
 
         protected readonly ColumnDefinition[] BaseColumns =
         {
-            new ColumnDefinition{ PropertyName = nameof(BaseEntity.Id), ColumnName = "id" }
+            new ColumnDefinition{ PropertyName = nameof(BaseEntity.Id), ColumnName = "id" },
+            new ColumnDefinition{ PropertyName = nameof(BaseEntity.RowVersion), ColumnName = "row_version" },
         };
 
         protected readonly ColumnDefinition[] AuditColumns =
@@ -72,7 +74,9 @@ namespace Posts.Infrastructure.Repositories.Base
 
         private string BuildUpdateAssignmentsOnce(ColumnDefinition[] cols)
             => string.Join(", ",
-                cols.Where(c => c.ColumnName != "id")
+                cols.Where(c => nameof(BaseEntity.Id) != c.PropertyName)
+                    .Where(c => nameof(BaseEntity.RowVersion) != c.PropertyName)
+                    .Where(c => !c.SkipOnUpdate)
                     .Select(c => $"\"{c.ColumnName}\" = @{c.PropertyName}")
             );
 
@@ -84,12 +88,13 @@ namespace Posts.Infrastructure.Repositories.Base
             WHERE id = @Id
             LIMIT 1;";
 
-            return _connectionFactory.Use((conn, cancellation) =>
+            return _connectionFactory.Use((conn, cancellation, tx) =>
                 conn.QuerySingleOrDefaultAsync<TEntity>(
                     new CommandDefinition(
                         commandText: sql,
                         parameters: new { Id = id },
-                        cancellationToken: cancellation
+                        cancellationToken: cancellation,
+                        transaction: tx
                     )
                 )
             );
@@ -111,12 +116,13 @@ namespace Posts.Infrastructure.Repositories.Base
             INSERT INTO {TableName} ({_insertColumnsSql})
             VALUES ({_insertParamsSql});";
 
-            await _connectionFactory.Use((conn, cancellation) =>
+            await _connectionFactory.Use((conn, cancellation, tx) =>
                 conn.ExecuteAsync(
                     new CommandDefinition(
                         commandText: sql,
                         parameters: entity,
-                        cancellationToken: cancellation
+                        cancellationToken: cancellation,
+                        transaction: tx
                     )
                 )
             );
@@ -126,30 +132,47 @@ namespace Posts.Infrastructure.Repositories.Base
         {
             var sql = $@"
             UPDATE {TableName}
-            SET {_updateAssignmentsSql}
-            WHERE id = @Id;";
+            SET {_updateAssignmentsSql},
+                row_version = row_version + 1
+            WHERE id = @Id AND row_version = @RowVersion;";
 
-            await _connectionFactory.Use((conn, cancellation) =>
+            if (IsAuditable)
+            {
+                var auditable = (IAuditableEntity)entity;
+                auditable.UpdatedAt = DateTime.UtcNow;
+                auditable.UpdatedBy = _currentUser.UserId;
+            }
+
+            var affected = await _connectionFactory.Use((conn, cancellation, tx) =>
                 conn.ExecuteAsync(
                     new CommandDefinition(
                         commandText: sql,
                         parameters: entity,
-                        cancellationToken: cancellation
+                        cancellationToken: cancellation,
+                        transaction: tx
                     )
                 )
             );
+
+            if(affected == 0)
+            {
+                throw new ConcurencyException("Data was modified by another request");
+            }
+
+            entity.RowVersion += 1;
         }
 
         public virtual async Task Delete(Guid id)
         {
             var sql = $@"DELETE FROM {TableName} WHERE id = @Id;";
 
-            await _connectionFactory.Use((conn, cancellation) =>
+            await _connectionFactory.Use((conn, cancellation, tx) =>
                 conn.ExecuteAsync(
                     new CommandDefinition(
                         commandText: sql,
                         parameters: new { Id = id },
-                        cancellationToken: cancellation
+                        cancellationToken: cancellation,
+                        transaction: tx
                     )
                 )
             );

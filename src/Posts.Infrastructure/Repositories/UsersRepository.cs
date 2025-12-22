@@ -44,7 +44,7 @@ namespace Posts.Infrastructure.Repositories
                 WHERE email = @Email
                 LIMIT 1;";
 
-            return _connectionFactory.Use((conn, cancellation) =>
+            return _connectionFactory.Use((conn, cancellation, tr) =>
                 conn.QuerySingleOrDefaultAsync<User>(
                     new CommandDefinition(
                         commandText: sql,
@@ -63,7 +63,7 @@ namespace Posts.Infrastructure.Repositories
                 WHERE username = @Username
                 LIMIT 1;";
 
-            return _connectionFactory.Use((conn, cancellation) =>
+            return _connectionFactory.Use((conn, cancellation, tr) =>
                 conn.QuerySingleOrDefaultAsync<User>(
                     new CommandDefinition(
                         commandText: sql,

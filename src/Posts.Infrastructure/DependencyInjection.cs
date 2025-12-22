@@ -107,6 +107,7 @@ namespace Posts.Infrastructure
         private static void AddConnectionFactory(IServiceCollection services)
         {
             services.AddScoped<DbConnectionFactory>();
+            services.AddScoped<IUnitOfWork>(sp => sp.GetService<DbConnectionFactory>()!);
         }
 
         private static void ApplyRepositories(IServiceCollection services)
