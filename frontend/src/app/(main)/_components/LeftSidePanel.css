@@ -89,7 +89,8 @@
 .left-panel_profile-details{
     @apply border-t border-(--border) py-2 px-3
         hover:bg-(--border)/30 cursor-pointer w-full!
-        flex flex-row justify-center items-center;
+        flex flex-row justify-center items-center
+        max-w-full overflow-hidden;
 }
 
 .left-panel.expanded .left-panel_profile-details{
@@ -108,7 +109,7 @@
 }
 
 .left-panel_profile-details-titles{
-    @apply hidden flex-col px-3
+    @apply hidden flex-col px-3 overflow-hidden
         justify-center text-[14px];
 }
 
@@ -117,7 +118,7 @@
 }
 
 .left-panel_profile-details-titles span{
-    @apply leading-4;
+    @apply leading-4 truncate text-ellipsis overflow-hidden;
 }
 
 .left-panel_profile-details-fullname{

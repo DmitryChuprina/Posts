@@ -78,7 +78,10 @@ export default function SettingsProfile() {
             updateCurrentUserProfile(dto),
             {
                 errorDefaultMessage: "Error when updating profile",
-                onData: setProfile,
+                onData: data => {
+                    setProfile(data);
+                    setSaveError(null);
+                },
                 onError: setSaveError,
                 onIsLoading: setIsLoading
             }

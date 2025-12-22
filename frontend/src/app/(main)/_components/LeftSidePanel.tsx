@@ -9,6 +9,7 @@ import { ISessionUser } from "@/lib/stores/session";
 import { ComponentType, SVGProps, useMemo, useState } from "react";
 import { clientStorage } from "@/lib/client-api";
 import { NoSSR } from "@/_components/NoSsr";
+import { signOutAction } from "@/lib/actions/auth";
 import ProfileIcon from "../../_components/ProfileIcon";
 
 import ArrowIcon from "@/public/arrow.svg";
@@ -20,7 +21,6 @@ import SearchIcon from "@/public/menu/search.svg";
 import ChatIcon from "@/public/menu/chat.svg";
 
 import './LeftSidePanel.css';
-import { signOutAction } from "@/lib/actions/auth";
 
 interface IMenuItem {
     Icon: ComponentType<SVGProps<SVGSVGElement>>;
@@ -113,10 +113,12 @@ export default function LeftSidePanel({ user, defaultExpanded, expandedStoreKey 
                                     )}
                                     className="left-panel_profile-details"
                                 >
-                                    <ProfileIcon file={user.profileImage} className="size-10"></ProfileIcon>
-                                    <div className="left-panel_profile-details-titles">
-                                        <span className="left-panel_profile-details-fullname">{fullname || '...'}</span>
-                                        <span className="left-panel_profile-details-username">{user.username}</span>
+                                    <div className="max-w-full flex flex-row overflow-hidden">
+                                        <ProfileIcon file={user.profileImage} className="size-10 min-w-10"></ProfileIcon>
+                                        <div className="left-panel_profile-details-titles">
+                                            <span className="left-panel_profile-details-fullname">{fullname || '...'}</span>
+                                            <span className="left-panel_profile-details-username">{user.username}</span>
+                                        </div>
                                     </div>
                                 </Popover>
 

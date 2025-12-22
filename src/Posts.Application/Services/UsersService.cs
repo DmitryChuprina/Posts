@@ -153,6 +153,8 @@ namespace Posts.Application.Services
                 //TODO: Revoke sessions exlude existed
             }
 
+            await _usersRepository.Update(user);
+
             return ToSecutiryDto(user);
         }
 

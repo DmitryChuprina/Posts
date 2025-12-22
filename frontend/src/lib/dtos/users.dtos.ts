@@ -1,18 +1,18 @@
 import { FileDto } from "./shared.dtos";
 
-interface UserIsTakenRequestDto{
+interface UserIsTakenRequestDto {
     forUserId?: string
 }
 
-export interface EmailIsTakenDto extends UserIsTakenRequestDto{
+export interface EmailIsTakenDto extends UserIsTakenRequestDto {
     email: string;
 }
 
-export interface UsernameIsTakenDto extends UserIsTakenRequestDto{
+export interface UsernameIsTakenDto extends UserIsTakenRequestDto {
     username: string;
 }
 
-export interface UserProfileDto{
+export interface UserProfileDto {
     id: string;
     firstName: string | null;
     lastName: string | null;
@@ -23,10 +23,14 @@ export interface UserProfileDto{
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface UpdateUserProfileDto extends Omit<UserProfileDto, 'id'>{}
+export interface UpdateUserProfileDto extends Omit<UserProfileDto, 'id'> { }
 
-export interface UserSecurityDto{
+export interface UserSecurityDto {
     email: string;
-    password: string;
+}
+
+export interface UpdateUserSecurityDto {
+    email: string;
+    password: string | null;
     revokeSessions: boolean;
 }

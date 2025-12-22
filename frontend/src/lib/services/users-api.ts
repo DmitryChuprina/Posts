@@ -23,7 +23,7 @@ export class UsersApiService extends BaseApiService {
         return this.client.get<UserSecurityDto>('/users/security')
     }
 
-    getUpdateUserSecurity(dto: UserSecurityDto) {
+    updateUserSecurity(dto: UserSecurityDto) {
         return this.client.put<UserSecurityDto>('/users/security', dto)
     }
 }
