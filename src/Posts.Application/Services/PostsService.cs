@@ -171,6 +171,12 @@ namespace Posts.Application.Services
             catch
             {
                 await _unitOfWork.RollbackAsync();
+
+                if (uploads.Any())
+                {
+                    _ = Task.Run(() => Task.WhenAll(uploads.Select(u => _s3Client.DeleteFileAsync(u!))));
+                }
+
                 throw;
             }
 
@@ -265,6 +271,12 @@ namespace Posts.Application.Services
             catch
             {
                 await _unitOfWork.RollbackAsync();
+
+                if (mediaToAdd.Any())
+                {
+                    _ = Task.Run(() => Task.WhenAll(mediaToAdd.Select(m => _s3Client.DeleteFileAsync(m.Key))));
+                }
+
                 throw;
             }
 
@@ -279,6 +291,7 @@ namespace Posts.Application.Services
                 throw new EntityNotFoundException(typeof(Post), postId);
             }
 
+            // TODO: Need realize soft delete in the future
             try
             {
                 await _unitOfWork.BeginTransactionAsync();
