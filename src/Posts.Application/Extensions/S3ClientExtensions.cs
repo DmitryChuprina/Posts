@@ -51,30 +51,26 @@ namespace Posts.Application.Extensions
             return persistedKey;
         }
 
-        public static async Task CleanupOldFileAsync(
-            this IS3Client client,
-            string? oldKey,
-            string? newKey,
-            ILogger? logger = null
-        )
+        public static async Task CleanupPersistedFilesAsync(this IS3Client client, IEnumerable<string> persistedFilesKeys, ILogger? logger = null)
         {
-            if (string.IsNullOrEmpty(oldKey))
-            {
-                return;
-            }
-
-            if (string.Equals(oldKey, newKey, StringComparison.Ordinal))
+            if (!persistedFilesKeys.Any())
             {
                 return;
             }
 
             try
             {
-                await client.DeleteFileAsync(oldKey);
+                await Task.WhenAll(
+                    persistedFilesKeys.Select(key => 
+                        key is not null 
+                            ? Task.Run(() => client.DeleteFileAsync(key)) 
+                            : Task.CompletedTask
+                    )
+                );
             }
             catch (Exception ex)
             {
-                logger?.LogError(ex, "Failed to cleanup old S3 file: {Key}. Manual cleanup required.", oldKey);
+                logger?.LogError(ex, "Failed to cleanup persisted S3 files. Manual cleanup required.");
             }
         }
     }

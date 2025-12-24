@@ -24,7 +24,7 @@ namespace Posts.Contract.Models.Posts
         public string? Content
         {
             get { return _content; }
-            set { _content = Formatting.NullableDefaultString(_content); }
+            set { _content = Formatting.NullableDefaultString(value); }
         }
         public Guid? ReplyForId { get; set; }
         public Guid? RepostId { get; set; }
@@ -39,7 +39,7 @@ namespace Posts.Contract.Models.Posts
         public string? Content
         {
             get { return _content; }
-            set { _content = Formatting.NullableDefaultString(_content); }
+            set { _content = Formatting.NullableDefaultString(value); }
         }
         public FileDto[] Media { get; set; } = [];
     }

@@ -1,9 +1,10 @@
 ﻿using Posts.Application.Core;
 using Posts.Application.Core.Models;
+using Posts.Application.DomainServices;
+using Posts.Application.DomainServices.Interfaces;
 using Posts.Application.Exceptions;
 using Posts.Application.Extensions;
 using Posts.Application.Repositories;
-using Posts.Application.DomainServices;
 using Posts.Contract.Models.Auth;
 using Posts.Domain.Entities;
 using Posts.Domain.Shared.Enums;
@@ -13,7 +14,7 @@ namespace Posts.Application.Services
 {
     public class AuthService
     {
-        private readonly UsersDomainService _usersDomainService;
+        private readonly IUsersDomainService _usersDomainService;
 
         private readonly IPasswordHasher _passwordHasher;
         private readonly IS3Client _s3Client;
@@ -28,7 +29,7 @@ namespace Posts.Application.Services
         public AuthService(
             IUsersRepository usersRepository,
             ISessionsRepository sessionsRepository,
-            UsersDomainService usersDomainService,
+            IUsersDomainService usersDomainService,
             ICurrentUser currentUser,
             IJwtTokenGenerator jwtTokenGenerator,
             IRefreshTokenGenerator refreshTokenGenerator,
