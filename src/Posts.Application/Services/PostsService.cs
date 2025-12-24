@@ -1,4 +1,5 @@
-﻿using Posts.Application.Core;
+﻿using Microsoft.Extensions.Logging;
+using Posts.Application.Core;
 using Posts.Application.Exceptions;
 using Posts.Application.Extensions;
 using Posts.Application.Repositories;
@@ -23,6 +24,8 @@ namespace Posts.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IS3Client _s3Client;
 
+        private readonly ILogger<PostsService> _logger;
+
         private readonly ICurrentUser _currentUser;
 
         public PostsService(
@@ -31,7 +34,8 @@ namespace Posts.Application.Services
             IPostMediaRepository postMediaRepository,
             IUnitOfWork unitOfWork,
             IS3Client s3Client,
-            ICurrentUser currentUser
+            ICurrentUser currentUser,
+            ILogger<PostsService> logger
         )
         {
             _postsRepository = postsRepository;
@@ -41,6 +45,7 @@ namespace Posts.Application.Services
             _unitOfWork = unitOfWork;
             _s3Client = s3Client;
 
+            _logger = logger;
             _currentUser = currentUser;
         }
 
@@ -94,7 +99,7 @@ namespace Posts.Application.Services
 
         public async Task<PostDto> Create(CreatePostDto dto)
         {
-            if(dto.ReplyForId is not null && dto.RepostId is not null)
+            if (dto.ReplyForId is not null && dto.RepostId is not null)
             {
                 throw new ValidationException("Post can't be reply and repost on same time.");
             }
@@ -174,7 +179,7 @@ namespace Posts.Application.Services
 
                 if (uploads.Any())
                 {
-                    _ = Task.Run(() => Task.WhenAll(uploads.Select(u => _s3Client.DeleteFileAsync(u!))));
+                    _ = Task.Run(() => _s3Client.CleanupPersistedFilesAsync(uploads.Select(s => s!)));
                 }
 
                 throw;
@@ -256,7 +261,7 @@ namespace Posts.Application.Services
                     await _postMediaRepository.AddManyAsync(mediaToAdd);
                 }
 
-                foreach(var update in mediaToUpdate)
+                foreach (var update in mediaToUpdate)
                 {
                     // TODO: implement bulk update
                     await _postMediaRepository.UpdateAsync(update);
@@ -267,6 +272,8 @@ namespace Posts.Application.Services
                     var mediaToRemoveIds = mediaToRemove.Select(m => m.Id);
                     await _postMediaRepository.DeleteManyAsync(mediaToRemoveIds);
                 }
+
+                await _unitOfWork.CommitAsync();
             }
             catch
             {
@@ -274,7 +281,7 @@ namespace Posts.Application.Services
 
                 if (mediaToAdd.Any())
                 {
-                    _ = Task.Run(() => Task.WhenAll(mediaToAdd.Select(m => _s3Client.DeleteFileAsync(m.Key))));
+                    _ = Task.Run(() => _s3Client.CleanupPersistedFilesAsync(mediaToAdd.Select(s => s.Key)));
                 }
 
                 throw;
@@ -296,17 +303,17 @@ namespace Posts.Application.Services
             {
                 await _unitOfWork.BeginTransactionAsync();
 
-                if(post.ReplyForId is not null)
+                if (post.ReplyForId is not null)
                 {
                     await _postsRepository.DecrementRepliesCountAsync(post.ReplyForId.Value);
                 }
 
-                if(post.RepostId is not null)
+                if (post.RepostId is not null)
                 {
                     await _postsRepository.DecrementRepostsCountAsync(post.RepostId.Value);
                 }
 
-                if(post.Tags.Any())
+                if (post.Tags.Any())
                 {
                     await _tagsRepository.DecrementTagsUsageAsync(post.Tags);
                 }
@@ -399,12 +406,15 @@ namespace Posts.Application.Services
                 return [];
             }
 
-            return _hashtagRegex.Matches(content)
-                .Select(match => match.Groups[1].Value)
+            var unformattedTags = _hashtagRegex.Matches(content)
+                .OfType<Match>()
+                .Select(match => match.Groups[1].Value);
+
+            var formatted = unformattedTags
                 .Select(unformatted =>
                 {
                     var formatted = Formatting.Tag(unformatted);
-                    if(formatted.Length > Validation.POST_TAG_MAX_LENGTH)
+                    if (formatted.Length > Validation.POST_TAG_MAX_LENGTH)
                     {
                         throw new ValidationException($"Tag must have maximum {Validation.POST_TAG_MAX_LENGTH} length");
                     }
@@ -412,6 +422,8 @@ namespace Posts.Application.Services
                 })
                 .Distinct()
                 .ToArray();
+
+            return formatted;
         }
     }
 }

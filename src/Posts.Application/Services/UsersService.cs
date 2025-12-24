@@ -1,6 +1,7 @@
 ﻿
+using Microsoft.Extensions.Logging;
 using Posts.Application.Core;
-using Posts.Application.DomainServices;
+using Posts.Application.DomainServices.Interfaces;
 using Posts.Application.Exceptions;
 using Posts.Application.Extensions;
 using Posts.Application.Repositories;
@@ -14,21 +15,23 @@ namespace Posts.Application.Services
 {
     public class UsersService
     {
-        private readonly UsersDomainService _usersDomainService;
+        private readonly IUsersDomainService _usersDomainService;
 
         private readonly IUsersRepository _usersRepository;
 
         private readonly ICurrentUser _currentUser;
 
+        private readonly ILogger<UsersService> _logger;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IS3Client _s3Client;
 
         public UsersService(
             IUsersRepository usersRepository,
-            UsersDomainService usersDomainService,
+            IUsersDomainService usersDomainService,
             ICurrentUser currentUser,
             IS3Client s3Client,
-            IPasswordHasher passwordHasher
+            IPasswordHasher passwordHasher,
+            ILogger<UsersService> logger
         )
         {
             _usersRepository = usersRepository;
@@ -36,6 +39,7 @@ namespace Posts.Application.Services
             _currentUser = currentUser;
             _s3Client = s3Client;
             _passwordHasher = passwordHasher;
+            _logger = logger;
         }
 
         public async Task<IsTakenDto> EmailIsTaken(EmailIsTakenDto dto)
@@ -110,12 +114,26 @@ namespace Posts.Application.Services
             user.ProfileImageKey = uploads[0];
             user.ProfileBannerKey = uploads[1];
 
-            await _usersRepository.UpdateAsync(user);
+            try
+            {
+                await _usersRepository.UpdateAsync(user);
+            }
+            catch
+            {
+                var persisted = new List<string>();
+                if(user.ProfileImageKey is not null && user.ProfileImageKey != oldProfileImageKey)
+                {
+                    persisted.Add(user.ProfileImageKey);
+                }
+                if(user.ProfileBannerKey is not null && user.ProfileBannerKey != oldProfileBannerKey)
+                {
+                    persisted.Add(user.ProfileBannerKey);
+                }
 
-            await Task.WhenAll(
-                _s3Client.CleanupOldFileAsync(oldProfileImageKey, user.ProfileImageKey),
-                _s3Client.CleanupOldFileAsync(oldProfileBannerKey, user.ProfileBannerKey)
-            );
+                _ = Task.Run(() => _s3Client.CleanupPersistedFilesAsync(persisted, _logger));
+
+                throw;
+            }
 
             return ToProfileDto(user);
         }
@@ -144,7 +162,7 @@ namespace Posts.Application.Services
 
             user.Email = dto.Email;
             user.EmailIsConfirmed = user.EmailIsConfirmed && prevEmail == dto.Email;
-            user.Password = dto.Password is not null ? 
+            user.Password = dto.Password is not null ?
                 _passwordHasher.Hash(dto.Password) :
                 user.Password;
 
