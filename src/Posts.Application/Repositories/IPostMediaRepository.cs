@@ -1,0 +1,10 @@
+﻿using Posts.Application.Repositories.Base;
+using Posts.Domain.Entities;
+
+namespace Posts.Application.Repositories
+{
+    public interface IPostMediaRepository : IBaseRepository<PostMedia>
+    {
+        Task<IEnumerable<PostMedia>> GetByPostIdAsync(Guid postId);
+    }
+}

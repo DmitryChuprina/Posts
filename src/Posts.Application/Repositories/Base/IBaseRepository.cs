@@ -5,9 +5,11 @@ namespace Posts.Application.Repositories.Base
     public interface IBaseRepository<TEntity> 
         where TEntity : BaseEntity
     {
-        Task<TEntity?> GetById(Guid id);
-        Task Add(TEntity entity);
-        Task Update(TEntity entity);
-        Task Delete(Guid id);
+        Task<TEntity?> GetByIdAsync(Guid id);
+        Task AddAsync(TEntity entity);
+        Task AddManyAsync(IEnumerable<TEntity> entities);
+        Task UpdateAsync(TEntity entity);
+        Task DeleteAsync(Guid id);
+        Task DeleteManyAsync(IEnumerable<Guid> ids);
     }
 }

@@ -15,10 +15,17 @@ namespace Posts.Domain.Utils
             RegexOptions.Compiled
         );
 
+        public const int MIN_NAME_LENGTH = 3;
+        public const int USER_DESCRIPTION_MAX_LENGTH = 1024;
+        public const int POST_CONTENT_MAX_LENGTH = 4096;
+        public const int POST_TAG_MAX_LENGTH = 1024;
+        public const int FILE_KEY_MAX_LENGTH = 1024;
         public const int DEFAULT_STRING_MAX_LENGTH = 255;
 
         public static bool IsName(string value) =>
-            !string.IsNullOrEmpty(value) && value.All(Char.IsLetter);
+            !string.IsNullOrEmpty(value) &&
+            value.Length >= MIN_NAME_LENGTH &&
+            value.All(Char.IsLetter);
 
         public static bool IsEmail(string value) =>
             !string.IsNullOrEmpty(value) && EmailRegex.IsMatch(value);

@@ -39,9 +39,9 @@ export default function SettingsLayoutLink({ title, hrefs, baseHref, Icon, class
                     className
                 )
             }
-            href={baseHref + canonical}
+            href={canonical}
         >
-            { Icon && <Icon className="size-5! min-w-5 mr-1"></Icon> }
+            {Icon && <Icon className="size-5! min-w-5 mr-1"></Icon>}
             {title}
         </Link>
     )

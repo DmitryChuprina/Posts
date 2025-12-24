@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS sessions
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_by UUID NULL,
     updated_at TIMESTAMP NULL,
+    row_version BIGINT NOT NULL DEFAULT 0,
 
     CONSTRAINT fk_sessions_user FOREIGN KEY (user_id)
         REFERENCES users(id)

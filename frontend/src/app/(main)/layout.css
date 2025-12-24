@@ -4,7 +4,7 @@
     --expanded-panel-width: 175px;
     --collapsed-panel-width: 75px;
 
-    @apply flex flex-row w-full h-screen max-w-full overflow-x-hidden;
+    @apply flex flex-row w-full h-screen max-w-full overflow-y-auto overflow-x-hidden;
 }
 
 .main-layout_content{

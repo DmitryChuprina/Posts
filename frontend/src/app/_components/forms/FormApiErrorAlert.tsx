@@ -15,8 +15,10 @@ export function FormApiErrorAlert({ message, setMessage, className, form }: Form
     if (!form || !message || !setMessage) {
       return;
     }
-    const subscription = form.watch(() => {
-      setMessage(null);
+    const subscription = form.watch((_, { type }) => {
+      if (type === 'change') {
+        setMessage(null);
+      }
     });
     return () => subscription.unsubscribe();
   }, [form, message, setMessage])

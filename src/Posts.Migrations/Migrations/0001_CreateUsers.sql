@@ -2,8 +2,8 @@ CREATE TABLE IF NOT EXISTS users
 (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     
-    username varchar(255) NOT NULL UNIQUE,
-    email varchar(255) NOT NULL UNIQUE,
+    username varchar(255) NOT NULL,
+    email varchar(255) NOT NULL,
     password varchar(255) NOT NULL,
     
     role SMALLINT NOT NULL,
@@ -22,7 +22,11 @@ CREATE TABLE IF NOT EXISTS users
     created_by UUID NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_by UUID NULL,
-    updated_at TIMESTAMP NULL
+    updated_at TIMESTAMP NULL,
+    row_version BIGINT NOT NULL DEFAULT 0,
+
+    CONSTRAINT uq_users_username UNIQUE (username),
+    CONSTRAINT uq_users_email UNIQUE (email)
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

@@ -13,5 +13,27 @@ namespace Posts.Api.Extensions
 
             return services;
         }
+
+        public static async Task S3ConfigureCleanUp(this WebApplication app)
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                var logger = services.GetRequiredService<ILogger<Program>>();
+
+                try
+                {
+                    var cleanupService = services.GetRequiredService<IS3Client>();
+                    await cleanupService.ConfigureCleanupAsync();
+
+                    logger.LogInformation("S3 cleanup configuration successfully completed.");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "An error occurred while configuring clean up S3.");
+                }
+            }
+        }
     }
 }
