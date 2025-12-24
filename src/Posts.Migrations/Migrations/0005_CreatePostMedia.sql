@@ -2,9 +2,8 @@ CREATE TABLE post_media (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     post_id uuid NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
 
-    key text NOT NULL,
+    key varchar(1024) NOT NULL,
     sort_order integer DEFAULT 0 NOT NULL,
-    media_type text,
 
     created_by uuid,
     created_at timestamp with time zone DEFAULT (now() at time zone 'utc'),

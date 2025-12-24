@@ -94,6 +94,11 @@ namespace Posts.Application.Services
 
         public async Task<PostDto> Create(CreatePostDto dto)
         {
+            if(dto.ReplyForId is not null && dto.RepostId is not null)
+            {
+                throw new ValidationException("Post can't be reply and repost on same time.");
+            }
+
             Post? repostedPost = null;
             if (dto.RepostId is not null)
             {
@@ -102,6 +107,7 @@ namespace Posts.Application.Services
                 {
                     throw new EntityNotFoundException(typeof(Post), dto.RepostId);
                 }
+                //TODO: Need some logic for determining what to do with reposts of reposts(especially with empty reposts)
             }
 
             Post? repliyedPost = null;
@@ -382,7 +388,15 @@ namespace Posts.Application.Services
 
             return _hashtagRegex.Matches(content)
                 .Select(match => match.Groups[1].Value)
-                .Select(Formatting.Tag)
+                .Select(unformatted =>
+                {
+                    var formatted = Formatting.Tag(unformatted);
+                    if(formatted.Length > Validation.POST_TAG_MAX_LENGTH)
+                    {
+                        throw new ValidationException($"Tag must have maximum {Validation.POST_TAG_MAX_LENGTH} length");
+                    }
+                    return formatted;
+                })
                 .Distinct()
                 .ToArray();
         }

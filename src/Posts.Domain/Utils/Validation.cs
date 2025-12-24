@@ -17,6 +17,9 @@ namespace Posts.Domain.Utils
 
         public const int MIN_NAME_LENGTH = 3;
         public const int USER_DESCRIPTION_MAX_LENGTH = 1024;
+        public const int POST_CONTENT_MAX_LENGTH = 4096;
+        public const int POST_TAG_MAX_LENGTH = 1024;
+        public const int FILE_KEY_MAX_LENGTH = 1024;
         public const int DEFAULT_STRING_MAX_LENGTH = 255;
 
         public static bool IsName(string value) =>

@@ -1,4 +1,6 @@
-﻿namespace Posts.Contract.Models.Posts
+﻿using Posts.Domain.Utils;
+
+namespace Posts.Contract.Models.Posts
 {
     public class PostDto
     {
@@ -17,7 +19,13 @@
 
     public class CreatePostDto
     {
-        public string? Content { get; set; }
+        public string? _content { get; set; }
+
+        public string? Content
+        {
+            get { return _content; }
+            set { _content = Formatting.NullableDefaultString(_content); }
+        }
         public Guid? ReplyForId { get; set; }
         public Guid? RepostId { get; set; }
         public FileDto[] Media { get; set; } = [];
@@ -25,13 +33,14 @@
 
     public class UpdatePostDto
     {
-        public Guid Id { get; set; }
-        public string? Content { get; set; }
-        public FileDto[] Media { get; set; } = [];
-    }
+        public string? _content { get; set; }
 
-    public class DeletePostDto
-    {
         public Guid Id { get; set; }
+        public string? Content
+        {
+            get { return _content; }
+            set { _content = Formatting.NullableDefaultString(_content); }
+        }
+        public FileDto[] Media { get; set; } = [];
     }
 }
