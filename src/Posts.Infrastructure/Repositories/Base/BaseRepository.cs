@@ -2,8 +2,10 @@
 using Posts.Application.Core;
 using Posts.Application.Exceptions;
 using Posts.Application.Repositories.Base;
+using Posts.Contract.Models;
 using Posts.Domain.Entities.Base;
 using Posts.Infrastructure.Repositories.Models;
+using System.Reflection;
 using static Dapper.SqlMapper;
 
 namespace Posts.Infrastructure.Repositories.Base
@@ -34,6 +36,7 @@ namespace Posts.Infrastructure.Repositories.Base
         protected bool IsAuditable => typeof(IAuditableEntity).IsAssignableFrom(typeof(TEntity));
 
         protected readonly ColumnDefinition[] _allColumns;
+
         protected readonly string _selectColumnsSql;
         protected readonly string _insertColumnsSql;
         protected readonly string _insertParamsSql;
@@ -80,7 +83,7 @@ namespace Posts.Infrastructure.Repositories.Base
                     .Select(c => $"\"{c.ColumnName}\" = @{c.PropertyName}")
             );
 
-        public virtual Task<TEntity?> GetById(Guid id)
+        public virtual Task<TEntity?> GetByIdAsync(Guid id)
         {
             var sql = $@"
             SELECT {_selectColumnsSql}
@@ -100,17 +103,9 @@ namespace Posts.Infrastructure.Repositories.Base
             );
         }
 
-        public virtual async Task Add(TEntity entity)
+        public virtual async Task AddAsync(TEntity entity)
         {
-            if (entity.Id == Guid.Empty)
-                entity.Id = Guid.NewGuid();
-
-            if (IsAuditable)
-            {
-                var auditable = (IAuditableEntity)entity;
-                auditable.CreatedAt = DateTime.UtcNow;
-                auditable.CreatedBy = _currentUser.UserId;
-            }
+            NoramlizeEntityForAdd(entity);
 
             var sql = $@"
             INSERT INTO {TableName} ({_insertColumnsSql})
@@ -127,8 +122,85 @@ namespace Posts.Infrastructure.Repositories.Base
                 )
             );
         }
+        public virtual async Task AddManyAsync(IEnumerable<TEntity> entities)
+        {
+            var list = entities.ToList();
+            if (list.Count == 0)
+            {
+                return;
+            }
 
-        public virtual async Task Update(TEntity entity)
+            foreach (var entity in list)
+            {
+                NoramlizeEntityForAdd(entity);
+            }
+
+            var parameters = new DynamicParameters();
+            var valuesList = new List<string>();
+
+            var type = typeof(TEntity);
+            // TODO: Need add _insertColumns/_updateColums props for a clear separation
+            // Currently used _allColumns beacause _allColumns used for insert
+            var propMap = _allColumns
+                .Select(c => new
+                    {
+                        Def = c,
+                        PropInfo = type.GetProperty(c.PropertyName)
+                    })
+                .ToArray();
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var entity = list[i];
+                var rowParams = new List<string>();
+
+                foreach (var prop in propMap)
+                {
+                    if(prop.PropInfo is null)
+                    {
+                        continue;
+                    }
+
+                    var paramName = $"@{prop.Def.PropertyName}_{i}";
+                    parameters.Add(paramName, prop.PropInfo.GetValue(entity));
+                    rowParams.Add(paramName);
+                }
+
+                valuesList.Add($"({string.Join(", ", rowParams)})");
+            }
+
+            var sql = $@"
+                INSERT INTO {TableName} ({_insertColumnsSql}) VALUES {string.Join(", ", valuesList)}
+             ";
+
+            await _connectionFactory.Use((conn, cancellation, tx) =>
+                conn.ExecuteAsync(
+                    new CommandDefinition(
+                        commandText: sql,
+                        parameters: parameters,
+                        cancellationToken: cancellation,
+                        transaction: tx
+                    )
+                )
+            );
+        }
+
+        protected virtual void NoramlizeEntityForAdd(TEntity entity)
+        {
+            if (entity.Id == Guid.Empty)
+            {
+                entity.Id = Guid.NewGuid();
+            }
+
+            if (IsAuditable)
+            {
+                var auditable = (IAuditableEntity)entity;
+                auditable.CreatedAt = DateTime.UtcNow;
+                auditable.CreatedBy = _currentUser.UserId;
+            }
+        }
+
+        public virtual async Task UpdateAsync(TEntity entity)
         {
             var sql = $@"
             UPDATE {TableName}
@@ -154,7 +226,7 @@ namespace Posts.Infrastructure.Repositories.Base
                 )
             );
 
-            if(affected == 0)
+            if (affected == 0)
             {
                 throw new ConcurencyException("Data was modified by another request");
             }
@@ -162,7 +234,7 @@ namespace Posts.Infrastructure.Repositories.Base
             entity.RowVersion += 1;
         }
 
-        public virtual async Task Delete(Guid id)
+        public virtual async Task DeleteAsync(Guid id)
         {
             var sql = $@"DELETE FROM {TableName} WHERE id = @Id;";
 
@@ -171,6 +243,22 @@ namespace Posts.Infrastructure.Repositories.Base
                     new CommandDefinition(
                         commandText: sql,
                         parameters: new { Id = id },
+                        cancellationToken: cancellation,
+                        transaction: tx
+                    )
+                )
+            );
+        }
+
+        public virtual async Task DeleteManyAsync(IEnumerable<Guid> ids)
+        {
+            var sql = $@"DELETE FROM {TableName} WHERE id in @Ids;";
+
+            await _connectionFactory.Use((conn, cancellation, tx) =>
+                conn.ExecuteAsync(
+                    new CommandDefinition(
+                        commandText: sql,
+                        parameters: new { Ids = ids },
                         cancellationToken: cancellation,
                         transaction: tx
                     )

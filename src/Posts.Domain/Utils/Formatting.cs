@@ -26,5 +26,8 @@
 
         public static string? NullablePassword(string? value) =>
             NullableDefaultString(value);
+
+        public static string Tag(string value) =>
+            DefaultString(value).ToLowerInvariant();
     }
 }

@@ -114,6 +114,11 @@ namespace Posts.Infrastructure
         {
             services.AddScoped<IUsersRepository, UsersRepository>();
             services.AddScoped<ISessionsRepository, SessionsRepository>();
+            services.AddScoped<IPostsRepository, PostsRepository>();
+            services.AddScoped<IPostLikesRepository, PostLikesRepository>();
+            services.AddScoped<IPostMediaRepository, PostMediaRepository>();
+            services.AddScoped<IPostViewsRepository, PostViewsRepository>();
+            services.AddScoped<ITagsRepository, TagsRepository>();
         }
     }
 }

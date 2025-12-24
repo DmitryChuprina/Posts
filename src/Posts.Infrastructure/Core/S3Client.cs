@@ -126,15 +126,6 @@ namespace Posts.Infrastructure.Core
 
             await _amazonS3.CopyObjectAsync(copyRequest);
 
-            try
-            {
-                await _amazonS3.DeleteObjectAsync(_options.BucketName, key);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Failed to cleanup old S3 file: {Key}.", key);
-            }
-
             return newKey;
         }
 

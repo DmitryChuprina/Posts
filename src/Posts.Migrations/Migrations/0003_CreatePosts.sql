@@ -10,6 +10,8 @@ CREATE TABLE posts (
     
     likes_count integer DEFAULT 0 NOT NULL,
     views_count integer DEFAULT 0 NOT NULL,
+    replies_count integer DEFAULT 0 NOT NULL,
+    reposts_count integer DEFAULT 0 NOT NULL,
     
     created_by uuid,
     created_at timestamp with time zone DEFAULT (now() at time zone 'utc'),

@@ -5,5 +5,6 @@ namespace Posts.Application.Repositories
 {
     public interface IPostMediaRepository : IBaseRepository<PostMedia>
     {
+        Task<IEnumerable<PostMedia>> GetByPostIdAsync(Guid postId);
     }
 }

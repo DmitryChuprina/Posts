@@ -65,7 +65,7 @@ namespace Posts.Application.Services
                 Role = UserRole.User,
             };
 
-            await _usersRepository.Add(user);
+            await _usersRepository.AddAsync(user);
 
             return new SignUpResponseDto
             {
@@ -95,7 +95,7 @@ namespace Posts.Application.Services
                 ExpiresAt = dto.RememberMe ? null : DateTime.UtcNow.AddDays(1)
             };
 
-            await _sessionsRepository.Add(session);
+            await _sessionsRepository.AddAsync(session);
 
             return new SignInResponseDto
             {
@@ -131,7 +131,7 @@ namespace Posts.Application.Services
                 throw new InvalidRefreshTokenException("Invalid session data");
             }
 
-            var user = await _usersRepository.GetById(session.UserId);
+            var user = await _usersRepository.GetByIdAsync(session.UserId);
             if (user is null) { 
                 throw new EntityNotFoundException(typeof(User), session.UserId);
             }
@@ -141,7 +141,7 @@ namespace Posts.Application.Services
             session.AccessToken = _tokenHasher.Hash(accessToken.Token);
             session.RefreshToken = _tokenHasher.Hash(refreshToken);
 
-            await _sessionsRepository.Update(session);
+            await _sessionsRepository.UpdateAsync(session);
 
             return new AuthTokensDto
             {
@@ -155,7 +155,7 @@ namespace Posts.Application.Services
         {
             var userId = _currentUser.UserId;
             var user = userId is not null ? 
-                await _usersRepository.GetById(userId.Value) : 
+                await _usersRepository.GetByIdAsync(userId.Value) : 
                 null;
             if (user is null) { 
                 throw new EntityNotFoundException(typeof(User), userId);

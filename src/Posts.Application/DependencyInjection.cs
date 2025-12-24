@@ -12,6 +12,7 @@ namespace Posts.Application
 
             services.AddScoped<AuthService>();
             services.AddScoped<UsersService>();
+            services.AddScoped<PostsService>();
 
             return services;
         }

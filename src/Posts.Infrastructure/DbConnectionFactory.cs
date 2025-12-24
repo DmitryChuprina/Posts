@@ -116,7 +116,7 @@ namespace Posts.Infrastructure
             _transactionEntry = null;
         }
 
-        public async Task<TRes?> Use<TRes>(Func<IDbConnection, CancellationToken, DbTransaction?, Task<TRes>> func)
+        public async Task<TRes> Use<TRes>(Func<IDbConnection, CancellationToken, DbTransaction?, Task<TRes>> func)
         {
             if (_transactionEntry is not null)
             {

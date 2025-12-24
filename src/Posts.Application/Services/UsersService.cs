@@ -67,7 +67,7 @@ namespace Posts.Application.Services
             bool needAccessCheck = true
         )
         {
-            var user = await _usersRepository.GetById(id);
+            var user = await _usersRepository.GetByIdAsync(id);
             if (user is null)
             {
                 throw new EntityNotFoundException(typeof(User), id.ToString());
@@ -86,7 +86,7 @@ namespace Posts.Application.Services
             UpdateUserProfileDto dto
         )
         {
-            var user = await _usersRepository.GetById(id);
+            var user = await _usersRepository.GetByIdAsync(id);
             if (user is null)
             {
                 throw new EntityNotFoundException(typeof(User), id.ToString());
@@ -110,7 +110,7 @@ namespace Posts.Application.Services
             user.ProfileImageKey = uploads[0];
             user.ProfileBannerKey = uploads[1];
 
-            await _usersRepository.Update(user);
+            await _usersRepository.UpdateAsync(user);
 
             await Task.WhenAll(
                 _s3Client.CleanupOldFileAsync(oldProfileImageKey, user.ProfileImageKey),
@@ -123,7 +123,7 @@ namespace Posts.Application.Services
         public async Task<UserSecurityDto> GetCurrentUserSecurity()
         {
             var userId = _currentUser.UserId!.Value;
-            var user = await _usersRepository.GetById(userId);
+            var user = await _usersRepository.GetByIdAsync(userId);
             if (user is null)
             {
                 throw new UnreachableException($"Critical: Auth user {userId} not found in DB.");
@@ -134,7 +134,7 @@ namespace Posts.Application.Services
         public async Task<UserSecurityDto> UpdateCurrentUserSecurity(UpdateUserSecurityDto dto)
         {
             var userId = _currentUser.UserId!.Value;
-            var user = await _usersRepository.GetById(userId);
+            var user = await _usersRepository.GetByIdAsync(userId);
             if (user is null)
             {
                 throw new UnreachableException($"Critical: Auth user {userId} not found in DB.");
@@ -153,7 +153,7 @@ namespace Posts.Application.Services
                 //TODO: Revoke sessions exlude existed
             }
 
-            await _usersRepository.Update(user);
+            await _usersRepository.UpdateAsync(user);
 
             return ToSecutiryDto(user);
         }
