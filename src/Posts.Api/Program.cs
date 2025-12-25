@@ -30,7 +30,7 @@ var s3Options = builder.Configuration.GetSection("S3Options").Get<S3Options>()
     ?? throw new ArgumentNullException("S3Options are not provided");
 
 var runMigrations = builder.Configuration.GetValue<bool?>("RunMigrations") ?? false;
-var s3ConfigureCleanup = builder.Configuration.GetValue<bool?>("S3ConfigureCleanup") ?? false;
+var s3Configure = builder.Configuration.GetValue<bool?>("S3Configure") ?? false;
 
 var dbOpts = new DbConnectionOptions { ConnectionString = connectionString };
 
@@ -72,9 +72,9 @@ if (runMigrations)
     await Migrations.RunAsync(connectionString);
 }
 
-if(s3ConfigureCleanup)
+if(s3Configure)
 {
-    await app.S3ConfigureCleanUp();
+    await app.S3Configure();
 }
 
 app.UseCors("AllowFrontend");

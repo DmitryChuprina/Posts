@@ -14,15 +14,15 @@ namespace Posts.Application.DomainServices
         }
 
         public Task<bool> EmailIsTaken(string email, Guid? forUserId = null) =>
-            IsTaken(() => _usersRepository.GetByEmail(email), forUserId);
+            IsTaken(() => _usersRepository.GetByEmailAsync(email), forUserId);
 
         public Task<bool> UsernameIsTaken(string username, Guid? forUserId = null) =>
-            IsTaken(() => _usersRepository.GetByUsername(username), forUserId);
+            IsTaken(() => _usersRepository.GetByUsernameAsync(username), forUserId);
 
         public Task ValidateEmailIsTaken(string email, Guid? forUserId = null) =>
-                ValidateIsTaken(() => _usersRepository.GetByEmail(email), "Email", forUserId);
+                ValidateIsTaken(() => _usersRepository.GetByEmailAsync(email), "Email", forUserId);
         public Task ValidateUsernameIsTaken(string username, Guid? forUserId = null) =>
-               ValidateIsTaken(() => _usersRepository.GetByUsername(username), "Username", forUserId);
+               ValidateIsTaken(() => _usersRepository.GetByUsernameAsync(username), "Username", forUserId);
 
         private async Task<bool> IsTaken(Func<Task<User?>> userDelegate, Guid? forUserId = null)
         {

@@ -9,6 +9,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Posts.Application.UnitTests/Posts.Application.UnitTests.csproj" Id="bd50bd9c-7db8-4772-8250-ce36d2a07150" />
+    <Project Path="tests/Posts.Infrastructure.IntegrationTests/Posts.Infrastructure.IntegrationTests.csproj" Id="e9a9ca6d-60fd-4806-8c1b-48f4bc9f6208" />
   </Folder>
   <Project Path="docker-compose.dcproj">
     <Build />

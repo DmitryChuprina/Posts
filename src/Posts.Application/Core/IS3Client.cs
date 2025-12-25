@@ -2,7 +2,7 @@
 {
     public interface IS3Client
     {
-        Task ConfigureCleanupAsync();
+        Task ConfigureBucketAsync();
         string GetPublicUrl(string key);
         string GetPresignedUrl(string key, int? expiresMinutes = null);
         Task<string> UploadAsync(string key, Stream stream, string contentType, bool isPublic = false);

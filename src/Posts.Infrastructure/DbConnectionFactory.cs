@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using Posts.Application.Core;
+using Posts.Infrastructure.Interfaces;
 using System.Data;
 using System.Data.Common;
 
@@ -52,7 +53,7 @@ namespace Posts.Infrastructure
         }
     }
 
-    internal class DbConnectionFactory : IDisposable, IUnitOfWork
+    internal class DbConnectionFactory : IDisposable, IUnitOfWork, IDbConnectionFactory
     {
         private readonly string _connectionString;
         private DbConnectionTransactionEntry? _transactionEntry;

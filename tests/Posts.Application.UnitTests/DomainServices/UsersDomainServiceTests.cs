@@ -39,7 +39,7 @@ namespace Posts.Application.UnitTests.DomainServices
         public async Task EmailIsTaken_Should_ReturnFalse_When_EmailNotFound()
         {
             // Arrange
-            _repoMock.Setup(x => x.GetByEmail(It.IsAny<string>()))
+            _repoMock.Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync((User?)null);
 
             // Act
@@ -53,7 +53,7 @@ namespace Posts.Application.UnitTests.DomainServices
         public async Task EmailIsTaken_Should_ReturnTrue_When_EmailExists_And_ForUserId_IsNull()
         {
             // Arrange
-            _repoMock.Setup(x => x.GetByEmail("busy@mail.com"))
+            _repoMock.Setup(x => x.GetByEmailAsync("busy@mail.com"))
                 .ReturnsAsync(GenUser());
 
             // Act
@@ -70,7 +70,7 @@ namespace Posts.Application.UnitTests.DomainServices
             var myId = Guid.NewGuid();
             var otherId = Guid.NewGuid();
 
-            _repoMock.Setup(x => x.GetByEmail("busy@mail.com"))
+            _repoMock.Setup(x => x.GetByEmailAsync("busy@mail.com"))
                 .ReturnsAsync(GenUser(id: otherId)); 
 
             // Act
@@ -86,7 +86,7 @@ namespace Posts.Application.UnitTests.DomainServices
             // Arrange 
             var myId = Guid.NewGuid();
 
-            _repoMock.Setup(x => x.GetByEmail("my@mail.com"))
+            _repoMock.Setup(x => x.GetByEmailAsync("my@mail.com"))
                 .ReturnsAsync(GenUser(id: myId));
 
             // Act
@@ -100,7 +100,7 @@ namespace Posts.Application.UnitTests.DomainServices
         public async Task ValidateEmailIsTaken_Should_Throw_When_Taken()
         {
             // Arrange
-            _repoMock.Setup(x => x.GetByEmail("taken@mail.com"))
+            _repoMock.Setup(x => x.GetByEmailAsync("taken@mail.com"))
                 .ReturnsAsync(GenUser());
 
             // Act
@@ -114,7 +114,7 @@ namespace Posts.Application.UnitTests.DomainServices
         public async Task ValidateEmailIsTaken_Should_NotThrow_When_Free()
         {
             // Arrange
-            _repoMock.Setup(x => x.GetByEmail(It.IsAny<string>())).ReturnsAsync((User?)null);
+            _repoMock.Setup(x => x.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
 
             // Act
             Func<Task> act = async () => await _service.ValidateEmailIsTaken("free@mail.com");
@@ -128,7 +128,7 @@ namespace Posts.Application.UnitTests.DomainServices
         {
             // Arrange
             var username = "cool_guy";
-            _repoMock.Setup(x => x.GetByUsername(username))
+            _repoMock.Setup(x => x.GetByUsernameAsync(username))
                 .ReturnsAsync(GenUser());
 
             // Act
@@ -137,8 +137,8 @@ namespace Posts.Application.UnitTests.DomainServices
             // Assert
             result.Should().BeTrue();
 
-            _repoMock.Verify(x => x.GetByUsername(username), Times.Once);
-            _repoMock.Verify(x => x.GetByEmail(It.IsAny<string>()), Times.Never);
+            _repoMock.Verify(x => x.GetByUsernameAsync(username), Times.Once);
+            _repoMock.Verify(x => x.GetByEmailAsync(It.IsAny<string>()), Times.Never);
         }
     }
 }

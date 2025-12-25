@@ -78,8 +78,8 @@ namespace Posts.Application.Services
         {
             var isEmail = Validation.IsEmail(dto.EmailOrUsername);
 
-            var user = isEmail ? await _usersRepository.GetByEmail(dto.EmailOrUsername) 
-                               : await _usersRepository.GetByUsername(dto.EmailOrUsername);
+            var user = isEmail ? await _usersRepository.GetByEmailAsync(dto.EmailOrUsername) 
+                               : await _usersRepository.GetByUsernameAsync(dto.EmailOrUsername);
 
             if (user is null || !_passwordHasher.Verify(dto.Password, user.Password))
             {

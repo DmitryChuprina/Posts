@@ -2,10 +2,9 @@
 using Posts.Application.Core;
 using Posts.Application.Exceptions;
 using Posts.Application.Repositories.Base;
-using Posts.Contract.Models;
 using Posts.Domain.Entities.Base;
+using Posts.Infrastructure.Interfaces;
 using Posts.Infrastructure.Repositories.Models;
-using System.Reflection;
 using static Dapper.SqlMapper;
 
 namespace Posts.Infrastructure.Repositories.Base
@@ -13,7 +12,7 @@ namespace Posts.Infrastructure.Repositories.Base
     internal abstract class BaseRepository<TEntity> : IBaseRepository<TEntity>
         where TEntity : BaseEntity
     {
-        protected readonly DbConnectionFactory _connectionFactory;
+        protected readonly IDbConnectionFactory _connectionFactory;
         protected readonly ICurrentUser _currentUser;
 
         protected readonly ColumnDefinition[] BaseColumns =
@@ -42,7 +41,7 @@ namespace Posts.Infrastructure.Repositories.Base
         protected readonly string _insertParamsSql;
         protected readonly string _updateAssignmentsSql;
 
-        public BaseRepository(DbConnectionFactory connectionFactory, ICurrentUser currentUser)
+        public BaseRepository(IDbConnectionFactory connectionFactory, ICurrentUser currentUser)
         {
             _connectionFactory = connectionFactory;
             _currentUser = currentUser;
@@ -105,7 +104,7 @@ namespace Posts.Infrastructure.Repositories.Base
 
         public virtual async Task AddAsync(TEntity entity)
         {
-            NoramlizeEntityForAdd(entity);
+            NormalizeEntityForAdd(entity);
 
             var sql = $@"
             INSERT INTO {TableName} ({_insertColumnsSql})
@@ -132,7 +131,7 @@ namespace Posts.Infrastructure.Repositories.Base
 
             foreach (var entity in list)
             {
-                NoramlizeEntityForAdd(entity);
+                NormalizeEntityForAdd(entity);
             }
 
             var parameters = new DynamicParameters();
@@ -185,7 +184,7 @@ namespace Posts.Infrastructure.Repositories.Base
             );
         }
 
-        protected virtual void NoramlizeEntityForAdd(TEntity entity)
+        protected virtual void NormalizeEntityForAdd(TEntity entity)
         {
             if (entity.Id == Guid.Empty)
             {
@@ -196,7 +195,7 @@ namespace Posts.Infrastructure.Repositories.Base
             {
                 var auditable = (IAuditableEntity)entity;
                 auditable.CreatedAt = DateTime.UtcNow;
-                auditable.CreatedBy = _currentUser.UserId;
+                auditable.CreatedBy = _currentUser.UserId ?? auditable.CreatedBy;
             }
         }
 
@@ -212,7 +211,7 @@ namespace Posts.Infrastructure.Repositories.Base
             {
                 var auditable = (IAuditableEntity)entity;
                 auditable.UpdatedAt = DateTime.UtcNow;
-                auditable.UpdatedBy = _currentUser.UserId;
+                auditable.UpdatedBy = _currentUser.UserId ?? auditable.UpdatedBy;
             }
 
             var affected = await _connectionFactory.Use((conn, cancellation, tx) =>
@@ -252,7 +251,7 @@ namespace Posts.Infrastructure.Repositories.Base
 
         public virtual async Task DeleteManyAsync(IEnumerable<Guid> ids)
         {
-            var sql = $@"DELETE FROM {TableName} WHERE id in @Ids;";
+            var sql = $@"DELETE FROM {TableName} WHERE id = ANY(@Ids);";
 
             await _connectionFactory.Use((conn, cancellation, tx) =>
                 conn.ExecuteAsync(

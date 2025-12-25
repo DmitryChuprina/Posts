@@ -6,6 +6,8 @@ using Posts.Application.Core;
 using Posts.Application.Repositories;
 using Posts.Infrastructure.Core;
 using Posts.Infrastructure.Core.Models;
+using Posts.Infrastructure.Extensions;
+using Posts.Infrastructure.Interfaces;
 using Posts.Infrastructure.Repositories;
 
 namespace Posts.Infrastructure
@@ -48,13 +50,21 @@ namespace Posts.Infrastructure
             services.AddSingleton<IAmazonS3>(sp =>
             {
                 var options = sp.GetService<S3Options>();
-                return CreateAmazonS3Client(options);
+                if (options is null)
+                {
+                    throw new ArgumentNullException(nameof(options), "S3 configuration is missing");
+                }
+                return options.CreateAmazonS3Client();
             });
 
             services.AddKeyedSingleton<IAmazonS3>(DependencyInjectionTokens.S3_CLIENT_SIGNER, (sp, key) =>
             {
                 var options = sp.GetService<S3Options>();
-                return CreateAmazonS3Client(options, options?.PublicDomain);
+                if (options is null)
+                {
+                    throw new ArgumentNullException(nameof(options), "S3 configuration is missing");
+                }
+                return options.CreateAmazonS3Client(true);
             });
 
             services.AddSingleton<IS3Client, S3Client>();
@@ -67,47 +77,11 @@ namespace Posts.Infrastructure
             services.AddSingleton<IFileOptimizer, FileOptimizer>();
         }
 
-        private static AmazonS3Client CreateAmazonS3Client(S3Options? opts, string? overrideUrl = null)
-        {
-            if (opts is null)
-            {
-                throw new ArgumentNullException(nameof(opts), "S3 configuration is missing");
-            }
-
-            var serviceUrl = opts.ServiceUrl;
-
-            if (!string.IsNullOrEmpty(overrideUrl))
-            {
-                var isUri = Uri.TryCreate(overrideUrl, UriKind.Absolute, out var uri);
-
-                if (isUri)
-                {
-                    serviceUrl = $"{uri!.Scheme}://{uri.Authority}";
-                }
-                if(!isUri)
-                {
-                    serviceUrl = overrideUrl;
-                }
-            }
-
-            var useHttp = serviceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
-
-            var config = new AmazonS3Config
-            {
-                ServiceURL = serviceUrl,
-                ForcePathStyle = opts.ForcePathStyle,
-                UseHttp = useHttp
-            };
-
-            var credentials = new BasicAWSCredentials(opts.AccessKey, opts.SecretKey);
-
-            return new AmazonS3Client(credentials, config);
-        }
-
         private static void AddConnectionFactory(IServiceCollection services)
         {
             services.AddScoped<DbConnectionFactory>();
             services.AddScoped<IUnitOfWork>(sp => sp.GetService<DbConnectionFactory>()!);
+            services.AddScoped<IDbConnectionFactory>(sp => sp.GetService<DbConnectionFactory>()!);
         }
 
         private static void ApplyRepositories(IServiceCollection services)
