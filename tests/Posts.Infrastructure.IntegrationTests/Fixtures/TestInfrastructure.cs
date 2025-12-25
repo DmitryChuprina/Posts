@@ -23,20 +23,6 @@ namespace Posts.Infrastructure.IntegrationTests.Fixtures
             .WithEnvironment("MINIO_ROOT_PASSWORD", "minioadmin")
             .WithEnvironment("MINIO_BROWSER", "off")
             .WithEnvironment("MINIO_API_CORS_ALLOW_ORIGIN", "*")
-            .WithStartupCallback(async (c, ct) => {
-                var bucketName = "integration-test-bucket";
-                var setupCommand =
-                        $"mc alias set myminio http://localhost:9000 minioadmin minioadmin && " +
-                        $"mc mb myminio/{bucketName} && " +
-                        $"mc anonymous set public myminio/{bucketName}";
-
-                var result = await c.ExecAsync(new[] { "/bin/sh", "-c", setupCommand }, ct);
-
-                if (result.ExitCode != 0)
-                {
-                    throw new Exception($"MinIO setup failed: {result.Stderr}");
-                }
-            })
             .Build();
 
         public ICancellation Cancelation { get; private set; } = null!;

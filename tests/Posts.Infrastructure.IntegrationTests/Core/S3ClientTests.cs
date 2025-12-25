@@ -47,11 +47,7 @@ namespace Posts.Infrastructure.IntegrationTests.Core
 
         public async Task InitializeAsync()
         {
-            var bucketExists = await AmazonS3Util.DoesS3BucketExistV2Async(_amazonS3, TestBucket);
-            if (!bucketExists)
-            {
-                await _amazonS3.PutBucketAsync(TestBucket);
-            }
+            await _sut.ConfigureBucketAsync();
         }
 
         public Task DisposeAsync()
@@ -68,10 +64,10 @@ namespace Posts.Infrastructure.IntegrationTests.Core
             var content = "Public Content";
             using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(content));
 
-            await _sut.UploadAsync(key, stream, "text/plain", true);
+            var uploadedKey = await _sut.UploadAsync(key, stream, "text/plain", true);
 
             // Act
-            var url = _sut.GetPublicUrl(key);
+            var url = _sut.GetPublicUrl(uploadedKey);
 
             // Assert
             url.Should().NotBeNullOrEmpty();
@@ -96,10 +92,10 @@ namespace Posts.Infrastructure.IntegrationTests.Core
             var content = "Secret Content";
             using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(content));
 
-            await _sut.UploadAsync(key, stream, "text/plain");
+            var uploadedKey = await _sut.UploadAsync(key, stream, "text/plain");
 
             // Act
-            var url = _sut.GetPresignedUrl(key, expiresMinutes: 10);
+            var url = _sut.GetPresignedUrl(uploadedKey, expiresMinutes: 10);
 
             // Assert
             url.Should().NotBeNullOrEmpty();
@@ -145,10 +141,10 @@ namespace Posts.Infrastructure.IntegrationTests.Core
             using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(content));
 
             // Act
-            await _sut.UploadAsync(key, stream, "text/plain");
+            var uploadedKey = await _sut.UploadAsync(key, stream, "text/plain");
 
             // Assert
-            var response = await _amazonS3.GetObjectAsync(TestBucket, key);
+            var response = await _amazonS3.GetObjectAsync(TestBucket, uploadedKey);
             using var reader = new StreamReader(response.ResponseStream);
             var downloadedContent = await reader.ReadToEndAsync();
 
@@ -173,7 +169,7 @@ namespace Posts.Infrastructure.IntegrationTests.Core
             var newKey = await _sut.PersistFileAsync(tempKey, targetFolder, makePublic: true);
 
             // Assert
-            newKey.Should().Be($"users/avatars/{Path.GetFileName(tempKey)}");
+            newKey.Should().Contain($"users/avatars/{Path.GetFileName(tempKey)}");
             var newExists = await FileExistsInS3(newKey);
             newExists.Should().BeTrue("Target file should exist");
         }
@@ -182,7 +178,7 @@ namespace Posts.Infrastructure.IntegrationTests.Core
         public async Task ConfigureCleanupAsync_Should_Apply_Lifecycle_Rule()
         {
             // Act
-            await _sut.ConfigureCleanupAsync();
+            await _sut.ConfigureBucketAsync();
 
             // Assert
             var lifecycle = await _amazonS3.GetLifecycleConfigurationAsync(TestBucket);
@@ -201,15 +197,15 @@ namespace Posts.Infrastructure.IntegrationTests.Core
             // Arrange
             var key = "to-delete.txt";
             using var stream = new MemoryStream(new byte[1]);
-            await _sut.UploadAsync(key, stream, "text/plain");
+            var uploadedKey = await _sut.UploadAsync(key, stream, "text/plain");
 
-            (await FileExistsInS3(key)).Should().BeTrue();
+            (await FileExistsInS3(uploadedKey)).Should().BeTrue();
 
             // Act
-            await _sut.DeleteFileAsync(key);
+            await _sut.DeleteFileAsync(uploadedKey);
 
             // Assert
-            (await FileExistsInS3(key)).Should().BeFalse();
+            (await FileExistsInS3(uploadedKey)).Should().BeFalse();
         }
 
         private async Task<bool> FileExistsInS3(string key)

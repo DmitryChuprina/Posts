@@ -14,12 +14,7 @@ namespace Posts.Api.Extensions
             return services;
         }
 
-        public static async Task S3ConfigureCleanUp(this WebApplication app)
-        {
-            await S3Configure(app, (s3) => s3.ConfigureCleanupAsync(), "cleanup");
-        }
-
-        private static async Task S3Configure(WebApplication app, Func<IS3Client, Task> cnfCb, string name)
+        public static async Task S3Configure(this WebApplication app)
         {
             using (var scope = app.Services.CreateScope())
             {
@@ -29,13 +24,13 @@ namespace Posts.Api.Extensions
 
                 try
                 {
-                    var cleanupService = services.GetRequiredService<IS3Client>();
-                    await cnfCb(cleanupService);
-                    logger.LogInformation($"S3 {name} configuration successfully completed.");
+                    var s3 = services.GetRequiredService<IS3Client>();
+                    await s3.ConfigureBucketAsync();
+                    logger.LogInformation($"S3 configuration successfully completed.");
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, $"An error occurred while configuring {name} S3.");
+                    logger.LogError(ex, $"An error occurred while configuring S3.");
                 }
             }
         }
