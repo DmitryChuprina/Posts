@@ -2,6 +2,7 @@
 using Posts.Application.Core;
 using Posts.Application.Repositories;
 using Posts.Domain.Entities;
+using Posts.Infrastructure.Interfaces;
 using Posts.Infrastructure.Repositories.Base;
 using Posts.Infrastructure.Repositories.Models;
 using static Dapper.SqlMapper;
@@ -10,7 +11,7 @@ namespace Posts.Infrastructure.Repositories
 {
     internal class UsersRepository : BaseRepository<User>, IUsersRepository
     {
-        public UsersRepository(DbConnectionFactory connectionFactory, ICurrentUser currentUser) : base(connectionFactory, currentUser)
+        public UsersRepository(IDbConnectionFactory connectionFactory, ICurrentUser currentUser) : base(connectionFactory, currentUser)
         {
         }
 
@@ -36,7 +37,7 @@ namespace Posts.Infrastructure.Repositories
 
         protected override string TableName => "users";
 
-        public Task<User?> GetByEmail(string email)
+        public Task<User?> GetByEmailAsync(string email)
         {
             var sql = $@"
                 SELECT {_selectColumnsSql}
@@ -55,7 +56,7 @@ namespace Posts.Infrastructure.Repositories
             );
         }
 
-        public Task<User?> GetByUsername(string username)
+        public Task<User?> GetByUsernameAsync(string username)
         {
             var sql = $@"
                 SELECT {_selectColumnsSql}

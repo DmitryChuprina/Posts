@@ -471,7 +471,7 @@ namespace Posts.Application.UnitTests.Services
             // Arrange
             var postId = Guid.NewGuid();
             _postsRepoMock.Setup(x => x.GetByIdAsync(postId))
-                .ReturnsAsync((Post?)null); // Явно возвращаем null
+                .ReturnsAsync((Post?)null);
 
             // Act
             Func<Task> act = async () => await _service.Delete(postId);

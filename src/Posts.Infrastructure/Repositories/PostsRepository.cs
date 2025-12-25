@@ -4,6 +4,7 @@ using Posts.Application.Repositories;
 using Posts.Application.Repositories.Models;
 using Posts.Contract.Models;
 using Posts.Domain.Entities;
+using Posts.Infrastructure.Interfaces;
 using Posts.Infrastructure.Repositories.Base;
 using Posts.Infrastructure.Repositories.Models;
 
@@ -11,7 +12,7 @@ namespace Posts.Infrastructure.Repositories
 {
     internal class PostsRepository : BaseRepository<Post>, IPostsRepository
     {
-        public PostsRepository(DbConnectionFactory connectionFactory, ICurrentUser currentUser) : base(connectionFactory, currentUser)
+        public PostsRepository(IDbConnectionFactory connectionFactory, ICurrentUser currentUser) : base(connectionFactory, currentUser)
         {
         }
 

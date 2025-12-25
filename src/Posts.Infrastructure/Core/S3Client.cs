@@ -1,7 +1,6 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Posts.Application.Core;
 using Posts.Infrastructure.Core.Models;
 
@@ -12,20 +11,17 @@ namespace Posts.Infrastructure.Core
         private readonly IAmazonS3 _amazonS3;
         private readonly IAmazonS3 _signerClient;
         private readonly S3Options _options;
-        private readonly ILogger<S3Client> _logger;
 
         private const string TempPrefix = "temp/";
 
         public S3Client(
             IAmazonS3 amazonS3,
             S3Options options,
-            [FromKeyedServices(DependencyInjectionTokens.S3_CLIENT_SIGNER)] IAmazonS3 signerClient,
-            ILogger<S3Client> logger
+            [FromKeyedServices(DependencyInjectionTokens.S3_CLIENT_SIGNER)] IAmazonS3 signerClient
         ){
             _amazonS3 = amazonS3;
             _signerClient = signerClient;
             _options = options;
-            _logger = logger;
         }
 
         public async Task ConfigureCleanupAsync()

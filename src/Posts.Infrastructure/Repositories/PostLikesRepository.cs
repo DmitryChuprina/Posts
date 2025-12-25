@@ -1,6 +1,7 @@
 ﻿using Posts.Application.Core;
 using Posts.Application.Repositories;
 using Posts.Domain.Entities;
+using Posts.Infrastructure.Interfaces;
 using Posts.Infrastructure.Repositories.Base;
 using Posts.Infrastructure.Repositories.Models;
 
@@ -8,7 +9,7 @@ namespace Posts.Infrastructure.Repositories
 {
     internal class PostLikesRepository : BaseRepository<PostLike>, IPostLikesRepository
     {
-        public PostLikesRepository(DbConnectionFactory connectionFactory, ICurrentUser currentUser) : base(connectionFactory, currentUser)
+        public PostLikesRepository(IDbConnectionFactory connectionFactory, ICurrentUser currentUser) : base(connectionFactory, currentUser)
         {
         }
 

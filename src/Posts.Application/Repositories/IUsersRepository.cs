@@ -5,7 +5,7 @@ namespace Posts.Application.Repositories
 {
     public interface IUsersRepository : IBaseRepository<User>
     {
-        Task<User?> GetByUsername(string username);
-        Task<User?> GetByEmail(string email);
+        Task<User?> GetByUsernameAsync(string username);
+        Task<User?> GetByEmailAsync(string email);
     }
 }

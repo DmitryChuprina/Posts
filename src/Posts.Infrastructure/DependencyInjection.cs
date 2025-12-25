@@ -6,6 +6,7 @@ using Posts.Application.Core;
 using Posts.Application.Repositories;
 using Posts.Infrastructure.Core;
 using Posts.Infrastructure.Core.Models;
+using Posts.Infrastructure.Interfaces;
 using Posts.Infrastructure.Repositories;
 
 namespace Posts.Infrastructure
@@ -108,6 +109,7 @@ namespace Posts.Infrastructure
         {
             services.AddScoped<DbConnectionFactory>();
             services.AddScoped<IUnitOfWork>(sp => sp.GetService<DbConnectionFactory>()!);
+            services.AddScoped<IDbConnectionFactory>(sp => sp.GetService<DbConnectionFactory>()!);
         }
 
         private static void ApplyRepositories(IServiceCollection services)

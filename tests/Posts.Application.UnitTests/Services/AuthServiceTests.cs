@@ -131,7 +131,7 @@ namespace Posts.Application.UnitTests.Services
             var user = GenUser(email: "test@mail.com", password: "hashed_password");
 
             // Setup retrieval by email
-            _usersRepoMock.Setup(x => x.GetByEmail(req.EmailOrUsername)).ReturnsAsync(user);
+            _usersRepoMock.Setup(x => x.GetByEmailAsync(req.EmailOrUsername)).ReturnsAsync(user);
 
             // Setup password verification
             _passwordHasherMock.Setup(x => x.Verify(req.Password, user.Password)).Returns(true);
@@ -165,7 +165,7 @@ namespace Posts.Application.UnitTests.Services
         public async Task SignIn_Should_Throw_InvalidCredentials_When_UserNotFound()
         {
             // Arrange
-            _usersRepoMock.Setup(x => x.GetByUsername("unknown")).ReturnsAsync((User?)null);
+            _usersRepoMock.Setup(x => x.GetByUsernameAsync("unknown")).ReturnsAsync((User?)null);
 
             var req = new SignInRequestDto { EmailOrUsername = "unknown", Password = "123" };
 
@@ -181,7 +181,7 @@ namespace Posts.Application.UnitTests.Services
         {
             // Arrange
             var user = GenUser(password: "correct_hash");
-            _usersRepoMock.Setup(x => x.GetByUsername("user")).ReturnsAsync(user);
+            _usersRepoMock.Setup(x => x.GetByUsernameAsync("user")).ReturnsAsync(user);
             _passwordHasherMock.Setup(x => x.Verify("wrong_pass", "correct_hash")).Returns(false);
 
             var req = new SignInRequestDto { EmailOrUsername = "user", Password = "wrong_pass" };

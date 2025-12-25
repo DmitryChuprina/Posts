@@ -2,6 +2,7 @@
 using Posts.Application.Core;
 using Posts.Application.Repositories;
 using Posts.Domain.Entities;
+using Posts.Infrastructure.Interfaces;
 using Posts.Infrastructure.Repositories.Base;
 using Posts.Infrastructure.Repositories.Models;
 
@@ -9,7 +10,7 @@ namespace Posts.Infrastructure.Repositories
 {
     internal class PostMediaRepository : BaseRepository<PostMedia> , IPostMediaRepository
     {
-        public PostMediaRepository(DbConnectionFactory connectionFactory, ICurrentUser currentUser) : base(connectionFactory, currentUser)
+        public PostMediaRepository(IDbConnectionFactory connectionFactory, ICurrentUser currentUser) : base(connectionFactory, currentUser)
         {
         }
         protected override string TableName => "post_media";
