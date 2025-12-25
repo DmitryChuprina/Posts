@@ -18,7 +18,8 @@ namespace Posts.Infrastructure.Core
             IAmazonS3 amazonS3,
             S3Options options,
             [FromKeyedServices(DependencyInjectionTokens.S3_CLIENT_SIGNER)] IAmazonS3 signerClient
-        ){
+        )
+        {
             _amazonS3 = amazonS3;
             _signerClient = signerClient;
             _options = options;
@@ -54,7 +55,7 @@ namespace Posts.Infrastructure.Core
                 return string.Empty;
             }
 
-            return $"{_options.PublicDomain.TrimEnd('/')}/{key}";
+            return $"{_options.PublicDomain.TrimEnd('/')}/{_options.BucketName}/{key}";
         }
 
         public string GetPresignedUrl(string key, int? expiresMinutes = null)

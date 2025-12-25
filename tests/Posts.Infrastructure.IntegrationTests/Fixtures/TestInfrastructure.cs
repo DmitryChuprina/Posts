@@ -1,11 +1,12 @@
-﻿using DotNet.Testcontainers.Containers;
-using Npgsql;
+﻿using Npgsql;
 using Posts.Application.Core;
 using Posts.Infrastructure.Core;
 using Posts.Infrastructure.Interfaces;
-using Testcontainers.PostgreSql;
 using Respawn;
 using Respawn.Graph;
+using Testcontainers.Minio;
+using Testcontainers.PostgreSql;
+using IContainer = DotNet.Testcontainers.Containers.IContainer;
 
 namespace Posts.Infrastructure.IntegrationTests.Fixtures
 {
@@ -15,14 +16,38 @@ namespace Posts.Infrastructure.IntegrationTests.Fixtures
             .WithImage("pgvector/pgvector:pg17-trixie")
             .Build();
 
+        public MinioContainer Minio { get; } = new MinioBuilder()
+            .WithImage("minio/minio:latest")
+            .WithPortBinding(9000, true)
+            .WithEnvironment("MINIO_ROOT_USER", "minioadmin")
+            .WithEnvironment("MINIO_ROOT_PASSWORD", "minioadmin")
+            .WithEnvironment("MINIO_BROWSER", "off")
+            .WithEnvironment("MINIO_API_CORS_ALLOW_ORIGIN", "*")
+            .WithStartupCallback(async (c, ct) => {
+                var bucketName = "integration-test-bucket";
+                var setupCommand =
+                        $"mc alias set myminio http://localhost:9000 minioadmin minioadmin && " +
+                        $"mc mb myminio/{bucketName} && " +
+                        $"mc anonymous set public myminio/{bucketName}";
+
+                var result = await c.ExecAsync(new[] { "/bin/sh", "-c", setupCommand }, ct);
+
+                if (result.ExitCode != 0)
+                {
+                    throw new Exception($"MinIO setup failed: {result.Stderr}");
+                }
+            })
+            .Build();
+
         public ICancellation Cancelation { get; private set; } = null!;
         public IDbConnectionFactory ConnectionFactory { get; private set; } = null!;
 
         private Respawner _respawner = null!;
 
-        private IEnumerable<IContainer> Containers => new[]
+        private IEnumerable<IContainer> Containers => new []
         {
-            Db
+            (IContainer)Db,
+            (IContainer)Minio
         };
 
         public async Task InitializeAsync()

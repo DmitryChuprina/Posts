@@ -36,7 +36,7 @@ services:
       /bin/sh -c "
       /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
       /usr/bin/mc mb myminio/my-bucket;
-      /usr/bin/mc anonymous set public myminio/my-bucket;
+      /usr/bin/mc anonymous set none myminio/my-bucket;
       exit 0;
       "
   
@@ -58,7 +58,7 @@ services:
       S3Options__SecretKey: "minioadmin"
       S3Options__BucketName: "my-bucket"
       S3Options__ForcePathStyle: true
-      S3Options__PublicDomain: "http://localhost:9000/my-bucket"
+      S3Options__PublicDomain: "http://localhost:9000"
       ConnectionStrings__PostsDatabase: "Host=posts-db;Port=5432;Database=posts;Username=postgres;Password=postgres"
       RunMigrations: true
       S3ConfigureCleanup: true
